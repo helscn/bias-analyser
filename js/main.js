@@ -1,6 +1,7 @@
 ﻿//定义全局变量
 var myApp = {
 	dhxLayout : new Object,
+//	dhxWins : new Object,
 	dhxGrid : new Object,
 	dhxToolbar1 : new Object,
 	dhxToolbar2 : new Object,
@@ -9,14 +10,21 @@ var myApp = {
 };
 
 var userData = {
-	gridRecords : new Array(),	//保存表格记录对象的数组
-	posData : new Array(),		//计算旋转角度及涨缩时用到的坐标数据
-	rowCount : 24   			//Grid的默认行数
+	gridData : new Points("gridData"),		//保存的Grid中的数据
+	rowCount : 3 				  			//Grid的默认行数
 };
 
 $(document).ready(function() {
 	myApp.dhxLayout = new dhtmlXLayoutObject(document.body, "2U");
-
+/*
+	myApp.dhxWins= new dhtmlXWindows();
+	var win = myApp.dhxWins.createWindow("modual",0 ,0 , 300,200);
+	win.center();
+	win.setText("This is a test!");
+	win.setModal(true);
+	win.hide();
+*/
+	
 	myApp.dhxLayout.cells("a").setWidth(390);
 	myApp.dhxLayout.cells("a").setText("数据输入");
 	myApp.dhxToolbar1 = myApp.dhxLayout.cells("a").attachToolbar();
@@ -41,19 +49,14 @@ $(document).ready(function() {
 	myApp.dhxToolbar2.setIconsPath("./lib/imgs/toolbar/");
 	myApp.dhxToolbar2.loadXML("./data/dhxtoolbar.xml?" + new Date().getTime());
 	myApp.dhxLayout.cells("b").attachObject("chart");
-	myApp.dhxGrid.attachEvent("onLiveValidationError",function(id){
-		myApp.statusBar.setText(id);;
-	});
-	//myApp.dhxLayout.setEffect('collapse', true);
-	//myApp.dhxLayout.setEffect('resize', true);
+	myApp.dhxLayout.setEffect('collapse', true);
+	myApp.dhxLayout.setEffect('resize', true);
 	myApp.statusBar = myApp.dhxLayout.attachStatusBar();
 	myApp.statusBar.setText("Simple Status Bar");
-	
 
-	
 	Highcharts.setOptions({
 		lang:{
-			resetZoom:'恢复原始大小',
+			resetZoom:'全部显示',
 			resetZoomTitle:'取消视图缩放以显示所有数据.'
 		}
 	});
@@ -123,9 +126,10 @@ $(document).ready(function() {
         }*/]
     });
 	
-	myApp.dhxLayout.attachEvent("onResizeFinish",function(){
-		refreshChartSize();
-	});
+	myApp.dhxLayout.attachEvent("onResizeFinish",refreshChartSize);
+	myApp.dhxLayout.attachEvent("onPanelResizeFinish",refreshChartSize);
+	myApp.dhxLayout.attachEvent("onCollapse",refreshChartSize);
+	myApp.dhxLayout.attachEvent("onExpand",refreshChartSize);
 	
 /*
 	$("[title]").qtip({
@@ -158,15 +162,34 @@ $(document).ready(function() {
 */
 });
 
+//刷新图表容器的大小以适合窗口
 function refreshChartSize(){
-	//if (myApp.dhxLayout.cells("b").getWidth()<305) {
-	//	myApp.chart.container.style.width="300px";
-	//}else{
-		myApp.chart.container.style.width=myApp.dhxLayout.cells("b").getWidth()-5;
-	//}
-	//if (myApp.dhxLayout.cells("b").getHeight()<330) {
-	//	myApp.chart.container.style.height="300px";
-	//}else{
-		myApp.chart.container.style.height=myApp.dhxLayout.cells("b").getHeight()-65;
-	//}
+	myApp.chart.container.style.width=myApp.dhxLayout.cells("b").getWidth()-8;
+	myApp.chart.container.style.height=myApp.dhxLayout.cells("b").getHeight()-65;
+}
+
+//将Grid对象中的数据读取到userData.gridData中
+function readGridData(){
+	userData.gridData.points=new Array();
+	try{
+		for (var i=0;i<myApp.dhxGrid.getRowsNum();i++){
+			if (myApp.dhxGrid.cells2(i,1).getValue()!=""){
+				if (myApp.dhxGrid.cells2(i,2).getValue()=="") {myApp.dhxGrid.cells2(i,2).setValue("0")};
+				if (myApp.dhxGrid.cells2(i,3).getValue()=="") {myApp.dhxGrid.cells2(i,3).setValue("0")};
+				if (myApp.dhxGrid.cells2(i,4).getValue()=="") {myApp.dhxGrid.cells2(i,4).setValue("0")};
+				if (myApp.dhxGrid.cells2(i,5).getValue()=="") {myApp.dhxGrid.cells2(i,5).setValue("0")};
+				userData.gridData.addPoint(
+					myApp.dhxGrid.cells2(i,0)==0?false:true,
+					String(myApp.dhxGrid.cells2(i,1).getValue()),
+					Number(myApp.dhxGrid.cells2(i,2).getValue()),
+					Number(myApp.dhxGrid.cells2(i,3).getValue()),
+					Number(myApp.dhxGrid.cells2(i,4).getValue()),
+					Number(myApp.dhxGrid.cells2(i,5).getValue())
+				)
+			}
+		}
+	}catch(e){
+		userData.gridData.points=new Array();
+		alert("读取数据时发生错误！\n  数据行编号："+i);
+	}
 }
