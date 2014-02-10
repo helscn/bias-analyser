@@ -1,0 +1,13 @@
+﻿<?xml version="1.0"?>
+<toolbar>
+	<item id="alignmentSelect" type="buttonSelect" width="100" text="对位点选择..." title="选择依照哪一组数据点进行补偿对位。" />
+	<item id="sep1"   type="separator"/>
+	<item id="scaleSelect" type="buttonSelect" width="100" text="坐标拉伸系数" title="选择依照哪一组数据点计算设计坐标的涨缩系数。" />
+	<item id="scaleXText"  type="text" text="X轴:" />
+	<item id="scaleX" type="buttonInput" value="1.0" width="60" title="计算偏差量时X轴设计坐标的拉伸倍率。" />
+	<item id="scaleYText"  type="text" text="Y轴:" />
+	<item id="scaleY" type="buttonInput" value="1.0" width="60" title="计算偏差量时Y轴设计坐标的拉伸倍率。" />
+	<item id="sep2"   type="separator"/>
+	<item id="zoomSliderText"  type="text" text="偏差线放大倍率："/>
+	<item id="zoomSlider"  type="slider" len="1" valueMin="1" valueMax="100" valueNow="10" textMin="100x" textMax="10000x" toolTip="放大 %v00 倍." title="形变量示意图中的偏差线放大倍率。" />
+</toolbar>

@@ -1,0 +1,11 @@
+﻿<?xml version="1.0"?>
+<toolbar>
+	<item id="new"   type="button"   img="new.gif"  imgdis="new_dis.gif"  text="清空数据"  />
+	<item id="open"   type="button"   img="open.gif"  imgdis="open_dis.gif"  text="打开csv数据"  />
+	<item id="sep1"   type="separator"/>
+<!--
+	<item id="unitTrans"    type="button"   img="settings.gif"   text="单位转换"   />
+	<item id="sep2"   type="separator"/>
+-->
+	<item id="redrawChart"   type="button"   img="chart.gif"  text="绘制形变示意图"  />
+</toolbar>
