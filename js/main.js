@@ -94,7 +94,8 @@ $(document).ready(function() {
 	myApp.dhxGrid.setColValidators([,"NotEmpty","ValidNumeric","ValidNumeric","ValidNumeric","ValidNumeric"]);
 	myApp.dhxGrid.init();
 	myApp.clearGrid();
-	
+	myApp.dhxGrid.enableBlockSelection(true); 
+
 	//定义Toolbar对象
 	myApp.dhxToolbar1 = myApp.dhxLayout.cells("a").attachToolbar();
 	myApp.dhxToolbar1.setIconsPath("./lib/imgs/toolbar/");
@@ -193,6 +194,12 @@ $(document).ready(function() {
 				myApp.dhxGrid.clearAll();
 				$("#filePath").click();
 				myApp.dhxGrid.load($("#filePath").attr("value"),"csv");
+				break;
+			case "copy":
+				myApp.dhxGrid.copyBlockToClipboard();
+				break;
+			case "paste":
+				myApp.dhxGrid.pasteBlockFromClipboard();
 				break;
 			case "redrawChart":
 				myApp.redrawChart();
