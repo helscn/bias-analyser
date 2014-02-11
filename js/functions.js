@@ -453,7 +453,7 @@ Points.prototype.output=function (zoom,shift){
 	var tempPoint,tempName;
 	for (var i=0;i<this.points.length;i++){
 		tempPoint=this.points[i];
-		if (shift){
+ 		if (shift){
 			tempName=' [' + (i+1) + ']</b></span><br><span style="color:#006600"><b>标准X:</b></span>'+roundTo(tempPoint.specX+this.specPosShift.x)+'<span style="color:#006600"><br><b>标准Y:</b></span>'+roundTo(tempPoint.specY+this.specPosShift.y)+'<span style="color:#660000"><br><b>偏差X:</b></span>'+roundTo(tempPoint.biasX())+'<br><span style="color:#660000"><b>偏差Y:</b></span>'+roundTo(tempPoint.biasY())+'<span style="color:#660000"><br><b>偏差D:</b></span>'+roundTo(Math.sqrt(Math.pow(tempPoint.biasX(),2)+Math.pow(tempPoint.biasY(),2)));
 			tempData.data.push({
 				name:tempName,
