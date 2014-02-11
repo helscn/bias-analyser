@@ -161,13 +161,20 @@ Points.prototype.shiftMeasPos=function (shift){
 //平移标准坐标与量测坐标的原点至各自的重心
 Points.prototype.autoShift=function (){
 	var stat=this.calcStatistics();
+	var shift=new Object();
 	if (stat.avgSpecX!=null && stat.avgSpecY!=null) {
-		this.shiftSpecPos({x:stat.avgSpecX,y:stat.avgSpecY});
+		shift.specShift={x:stat.avgSpecX,y:stat.avgSpecY};
+	}else{
+		shift.specShift={x:0,y:0};
 	}
 	if (stat.avgMeasX!=null && stat.avgMeasY!=null) {
-		this.shiftMeasPos({x:stat.avgMeasX,y:stat.avgMeasY});
+		shift.measShift={x:stat.avgMeasX,y:stat.avgMeasY};
+	}else{
+		shift.measShift={x:0,y:0};
 	}
-	return this;
+	this.shiftSpecPos(shift.specShift);
+	this.shiftMeasPos(shift.measShift);
+	return shift;
 }
 
 //将量测坐标的X,Y进行交换
@@ -420,13 +427,14 @@ Points.prototype.autoFitAxis=function (){
 	if (isSwapXY) {this.swapMeasXY();}
 	if (isReverseX) {this.reverseMeasX();}
 	if (isReverseY) {this.reverseMeasY();}
-	//return {swapXY:isSwapXY,reverseX:isReverseX,reverseY:isReverseY};
-	return this;
+	return {swapXY:isSwapXY,reverseX:isReverseX,reverseY:isReverseY};
 }
 
 //自动将量测坐标旋转至与设计坐标位置最接近时的角度
 Points.prototype.autoRotate=function (){
-	return this.rotateMeasPos(this.calcRotation());
+	var rotation=this.calcRotation();
+	this.rotateMeasPos(rotation);
+	return rotation;
 }
 
 //清空数据

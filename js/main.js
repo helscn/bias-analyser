@@ -24,21 +24,36 @@ myApp.refreshChartSize=function (){
 
 //重新绘制图表数据
 myApp.redrawChart=function (){
-	var data=myApp.readGridData();
-	if (data===null){return false;}
-	data.clone().autoShift().autoFitAxis().autoRotate().splitBy("name");
-	var scaleFactor;
+	myApp.readGridData();
+	if (userData.gridData.points.length===0) {return false;}
+	userData.gridData.setScale({x:Number(myApp.dhxToolbar2.getValue("scaleX")),y:Number(myApp.dhxToolbar2.getValue("scaleY"))})
+	var data,alignmentName,shift,fitAxis,rotation;
+	data=userData.gridData.splitBy("name");
+	alignmentName=myApp.dhxToolbar2.getListOptionText("alignmentSelect",myApp.dhxToolbar2.getListOptionSelected("alignmentSelect"));
+	if (!alignmentName) {return false;}
+	for (var i=1;i<data.length;i++){
+		if (data[i].name==alignmentName) {
+			shift=data[i].autoShift();
+			userData.gridData.shiftSpecPos(shift.specShift);
+			userData.gridData.shiftMeasPos(shift.measShift);
+			fitAxis=userData.gridData.autoFitAxis();
+			if (fitAxis.swapXY) {data[i].swapMeasXY();}
+			if (fitAxis.reverseX) {data[i].reverseMeasX();}
+			if (fitAxis.reverseY) {data[i].reverseMeasY();}
+			rotation=data[i].calcRotation();
+			userData.gridData.rotateMeasPos(rotation);
+			data=userData.gridData.splitBy("name");
+			break;
+		}
+	}
 	while (myApp.chart.series.length>0) {
 		myApp.chart.series[0].remove(false);
 	}
 	for (var i=0;i<data.length;i++){
-		if (i===0) {
-			scaleFactor=data[0].calcScaleFactor();
-		}
-		data[i].setScale(scaleFactor);
 		myApp.chart.addSeries(data[i].output(Number(myApp.dhxToolbar2.getValue("zoomSlider"))*100),false);
 	}
 	myApp.chart.redraw();
+
 }
 
 //清空Grid中的数据
@@ -72,35 +87,47 @@ myApp.readGridData=function (){
 	}catch(e){
 		userData.gridData.clearData("gridData");
 		alert("读取数据时发生错误！\n  数据行编号："+(i+1));
-		return null;
+		userData.gridData.points=new Array();
 	}
 	return userData.gridData;
 }
 
 //刷新Chart工具栏中的下拉选择按钮
 myApp.refreshGroupName=function (){
-	var 
-	alert(myApp.dhxToolbar2.getListOptionSelected("alignmentSelect"));
+	var nameArr=myApp.getGroupNames();
+	myApp.refreshListOption(myApp.dhxToolbar2,"alignmentSelect",nameArr);
+	myApp.refreshListOption(myApp.dhxToolbar2,"scaleSelect",nameArr);
+	var alignmentSelect=myApp.dhxToolbar2.getListOptionSelected("alignmentSelect");
+	if (!alignmentSelect && nameArr.length>0) {
+		myApp.dhxToolbar2.setListOptionSelected("alignmentSelect",1);
+	}
+}
+
+//获取表格分组名称数组
+myApp.getGroupNames=function (){
 	var nameArr=[];
 	for (var i=0;i<myApp.dhxGrid.getRowsNum();i++){
 		if (nameArr.inArray(myApp.dhxGrid.cells2(i,0).getValue())===-1){
 			nameArr.push(myApp.dhxGrid.cells2(i,0).getValue());
 		}
 	}
-	for (var i=0;i<nameArr.length;i++){
-		myApp.dhxToolbar2.addListOption("alignmentSelect", i+1, i+1, "button", nameArr[i]);
-	}
+	return nameArr;
 }
 
-myApp.refreshListOption=function (toolbar,listOptionId,options,selValue){
+//Chart工具栏选择项目刷新函数
+myApp.refreshListOption=function (toolbar,listOptionId,options){
+	var oldOptionIds=toolbar.getAllListOptions(listOptionId);
 	var oldValue=toolbar.getListOptionSelected(listOptionId);
-	var oldOptionId=toolbar.getAllListOptions(listOptionId);
 	if (oldValue) {oldValue=toolbar.getListOptionText(listOptionId,oldValue);}
-	if (selValue) {oldValue=selValue;}
-	for (var i=0;i<oldOptionId.length;i++){
-		toolbar.removeListOption(listOptionId,oldOptionId[i]);
+	for (var i=0;i<oldOptionIds.length;i++){
+		toolbar.removeListOption(listOptionId,oldOptionIds[i]);
 	}
-	
+	for (var i=0;i<options.length;i++){
+		toolbar.addListOption(listOptionId,i+1,i+1,"button",options[i]);
+		if (options[i]==oldValue) {
+			toolbar.setListOptionSelected(listOptionId,i+1);
+		}
+	}
 }
 
 $(document).ready(function() {
@@ -242,6 +269,7 @@ $(document).ready(function() {
 					}
 				}
 				myApp.dhxGrid.checkAll(true);
+				myApp.refreshGroupName();
 				break;
 			case "copy":
 				myApp.dhxGrid.copyBlockToClipboard();
@@ -261,6 +289,12 @@ $(document).ready(function() {
 				break;
 		}
 	});
+	myApp.dhxToolbar2.attachEvent("onEnter", function(id, value){
+		alert(value);
+	});
+	myApp.dhxToolbar2.attachEvent("onClick",function(id){
+		alert(id);
+	})
 	
 	//Grid事件绑定
 	myApp.dhxGrid.attachEvent("onEditCell", function(stage,rId,cInd,nValue,oValue){
