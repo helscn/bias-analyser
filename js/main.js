@@ -27,12 +27,12 @@ myApp.refreshChartSize=function (){
 myApp.redrawChart=function (){
 	myApp.readGridData();
 	if (userData.gridData.points.length===0) {return false;}
-	userData.gridData.setScale({x:Number(myApp.dhxToolbar2.getValue("scaleX")),y:Number(myApp.dhxToolbar2.getValue("scaleY"))})
-	var data,alignmentName,shift,fitAxis,rotation;
+	userData.gridData.setScale({x:userData.scaleX,y:userData.scaleY})
+	var data,alignmentName,shift,fitAxis,rotation,statusTip;
 	data=userData.gridData.splitBy("name");
 	alignmentName=myApp.dhxToolbar2.getListOptionText("alignmentSelect",myApp.dhxToolbar2.getListOptionSelected("alignmentSelect"));
 	if (!alignmentName) {return false;}
-	for (var i=1;i<data.length;i++){
+	for (var i=0;i<data.length;i++){
 		if (data[i].name==alignmentName) {
 			shift=data[i].autoShift();
 			userData.gridData.shiftSpecPos(shift.specShift);
@@ -44,6 +44,14 @@ myApp.redrawChart=function (){
 			rotation=data[i].calcRotation();
 			userData.gridData.rotateMeasPos(rotation);
 			data=userData.gridData.splitBy("name");
+			statusTip="对位点:"+alignmentName;
+			statusTip+="　　　X轴拉伸:"+userData.scaleX;
+			statusTip+=",Y轴拉伸:"+userData.scaleY;
+			statusTip+="　　　旋转角度:"+roundTo(rotation,8);
+			statusTip+="　　　XY轴翻转："+(fitAxis.swapXY?"Yes":"No");
+			statusTip+=", X轴镜像："+(fitAxis.reverseX?"Yes":"No");
+			statusTip+=", Y轴镜像："+(fitAxis.reverseY?"Yes":"No");
+			myApp.statusBar.setText(statusTip);
 			break;
 		}
 	}
@@ -101,6 +109,7 @@ myApp.refreshGroupName=function (){
 	var alignmentSelect=myApp.dhxToolbar2.getListOptionSelected("alignmentSelect");
 	if (!alignmentSelect && nameArr.length>0) {
 		myApp.dhxToolbar2.setListOptionSelected("alignmentSelect","alignmentSelect_1");
+		myApp.dhxToolbar2.setItemText("alignmentSelect",myApp.dhxToolbar2.getListOptionText("alignmentSelect","alignmentSelect_1")+" 对位");
 	}
 }
 
@@ -151,6 +160,7 @@ $(document).ready(function() {
 	myApp.dhxGrid.init();
 	myApp.clearGrid();
 	myApp.dhxGrid.enableBlockSelection(true); 
+	myApp.dhxGrid.enableMultiselect(true);
 
 	//定义Toolbar对象
 	myApp.dhxToolbar1 = myApp.dhxLayout.cells("a").attachToolbar();
@@ -162,7 +172,7 @@ $(document).ready(function() {
 
 	//定义StatusBar对象
 	myApp.statusBar = myApp.dhxLayout.attachStatusBar();
-	myApp.statusBar.setText("Simple Status Bar");
+	myApp.statusBar.setText("Ready.");
 
 	//定义Chart对象
 	myApp.dhxLayout.cells("b").attachObject("chart");
@@ -263,6 +273,7 @@ $(document).ready(function() {
 				break;
 			case "copy":
 				myApp.dhxGrid.copyBlockToClipboard();
+				myApp.statusBar.setText("数据已经复制到剪贴板.");
 				break;
 			case "paste":
 				myApp.dhxGrid.pasteBlockFromClipboard();
@@ -279,32 +290,74 @@ $(document).ready(function() {
 				break;
 		}
 	});
-	myApp.dhxToolbar2.attachEvent("onEnter", function(id, value){
-		var v;
+	myApp.dhxToolbar2.attachEvent("onClick",function(id){
+		var arg=id.split('_');
+		var v,data,scale;
+		switch (arg[0]){
+			case "alignmentSelect":
+				if (arg.length===2) {
+					myApp.dhxToolbar2.setItemText("alignmentSelect",myApp.dhxToolbar2.getListOptionText("alignmentSelect",id)+" 对位");
+				}
+				myApp.redrawChart();
+				break;
+			case "scaleSelect":
+				if (arg.length==2) {
+					data=myApp.readGridData();
+					data.autoShift();
+					data.autoFitAxis();
+					data=data.splitBy("name");
+					v=myApp.dhxToolbar2.getListOptionText("scaleSelect",id);
+					for (var i=0;i<data.length;i++){
+						if (data[i].name==v){
+							data[i].autoShift();
+							data[i].autoRotate();
+							scale=data[i].calcScaleFactor();
+							if (scale.x !== null ) {
+								userData.scaleX=roundTo(scale.x,6);
+								myApp.dhxToolbar2.setValue("scaleX",userData.scaleX);
+							}else{
+								alert('计算X轴的涨缩系数时出现错误！')
+							}
+							if (scale.y !== null) {
+								userData.scaleY=roundTo(scale.y,6);
+								myApp.dhxToolbar2.setValue("scaleY",userData.scaleY);
+							}else{
+								alert('计算Y轴的涨缩系数时出现错误！')
+							}
+							break;
+						}
+					}
+				}
+				myApp.redrawChart();
+				break;
+		}
+	})
+	
+	//输入框变更事件绑定
+	$("div[idd]>input.inp").change(function (){
+		var v=$(this).val().replace(/\s/gi,'');
+		var id=$(this).parent().attr("idd");
 		var regScale=/^(1|1\.\d*|0\.\d*)$/gi;
 		switch (id){
 			case "scaleX":
-				v=myApp.dhxToolbar2.getValue("scaleX").replace(/\s/gi,'');
 				if (regScale.test(v)===true) {
-					myApp.dhxToolbar2.setValue("scaleX",v);
 					userData.scaleX=Number(v);
 				}
+				$(this).val(userData.scaleX)
 				break;
 			case "scaleY":
-				v=myApp.dhxToolbar2.getValue("scaleY").replace(/\s/gi,'');
-				myApp.dhxToolbar2.setValue("scaleY",v);
 				if (regScale.test(v)===true) {
-					
+					userData.scaleY=Number(v);
 				}
+				$(this).val(userData.scaleY)
+				break;
 		}
-	});
-	myApp.dhxToolbar2.attachEvent("onClick",function(id){
-		alert(id);
+		myApp.redrawChart();
 	})
 	
 	//Grid事件绑定
 	myApp.dhxGrid.attachEvent("onEditCell", function(stage,rId,cInd,nValue,oValue){
-		if (stage!==2) {return true;}
+		if (stage!==2 || nValue=="") {return true;}
 		if (rId==myApp.dhxGrid.getRowsNum()-1) {
 			myApp.dhxGrid.addRow(myApp.dhxGrid.getRowsNum(), [,,,,,1]);
 		}
@@ -322,7 +375,18 @@ $(document).ready(function() {
 		}
 		return true;
 	});
-	
+	myApp.dhxGrid.attachEvent("onKeyPress",function (code,cFlag,sFlag){
+		if (code===46 && cFlag===false && sFlag===false){
+			myApp.dhxGrid.clearSelection();
+		}else if (code===67 && cFlag===true && sFlag==false) {
+			myApp.dhxGrid.copyBlockToClipboard();
+			myApp.statusBar.setText("数据已经复制到剪贴板.");
+		}else if (code===86 && cFlag===true && sFlag==false){
+			myApp.dhxGrid.pasteBlockFromClipboard();
+		}
+		return true;
+	});
+		
 	//文件选择事件绑定
 	$("#filePath").change(function (){
 		myApp.dhxGrid.load($("#filePath").attr("value"),"csv");
@@ -342,5 +406,4 @@ $(document).ready(function() {
 	$(window).resize(myApp.refreshChartSize);
 	myApp.refreshChartSize();
 
-	
 });

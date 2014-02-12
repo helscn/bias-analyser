@@ -362,8 +362,8 @@ Points.prototype.calcScaleFactor=function (threshold){
 		}
 	}
 	return {
-		x : (countX>0 ? tempX/countX : null),
-		y : (countY>0 ? tempY/countY : null),
+		x : (countX>1 ? tempX/countX : null),
+		y : (countY>1 ? tempY/countY : null),
 		countX : countX,
 		countY : countY
 	};
