@@ -78,7 +78,6 @@ myApp.redrawChart=function (){
 		}
 	}
 	myApp.chart.redraw();
-
 }
 
 //清空Grid中的数据
@@ -425,5 +424,7 @@ $(document).ready(function() {
 	//windows事件绑定
 	$(window).resize(myApp.refreshChartSize);
 	myApp.refreshChartSize();
+	myApp.dhxToolbar2.disableItem("alignmentSelect");
+	myApp.dhxToolbar2.disableItem("scaleSelect");
 
 });
