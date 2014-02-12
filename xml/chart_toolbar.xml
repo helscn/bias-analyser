@@ -9,5 +9,5 @@
 	<item id="scaleY" type="buttonInput" value="1.0" width="60" title="计算偏差量时Y轴设计坐标的拉伸倍率。" />
 	<item id="sep2"   type="separator"/>
 	<item id="zoomSliderText"  type="text" text="偏差线放大倍率："/>
-	<item id="zoomSlider"  type="slider" len="1" valueMin="1" valueMax="100" valueNow="10" textMin="100x" textMax="10000x" toolTip="放大 %v00 倍." title="形变量示意图中的偏差线放大倍率。" />
+	<item id="zoomSlider"  type="slider" len="1" valueMin="1" valueMax="10000" valueNow="1000" textMin="1x" textMax="10000x" toolTip="放大 %v 倍." title="形变量示意图中的偏差线放大倍率。" />
 </toolbar>

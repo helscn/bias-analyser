@@ -3,7 +3,18 @@ var userData = {
 	gridData : new Points("gridData"),		//保存的Grid中的数据
 	rowCount : 20, 				  			//Grid的默认行数
 	scaleX: 1.0,							//标准坐标的X轴拉伸倍率
-	scaleY: 1.0								//标准坐标的X轴拉伸倍率
+	scaleY: 1.0,								//标准坐标的X轴拉伸倍率
+	chartColors: [
+		'#4572A7', 
+		'#AA4643', 
+		'#89A54E', 
+		'#80699B', 
+		'#3D96AE', 
+		'#DB843D', 
+		'#92A8CD', 
+		'#A47D7C', 
+		'#B5CA92'
+	]
 };
 
 var myApp = {
@@ -28,7 +39,7 @@ myApp.redrawChart=function (){
 	myApp.readGridData();
 	if (userData.gridData.points.length===0) {return false;}
 	userData.gridData.setScale({x:userData.scaleX,y:userData.scaleY})
-	var data,alignmentName,shift,fitAxis,rotation,statusTip;
+	var data,alignmentName,shift,fitAxis,rotation,statusTip,colorIndex;
 	data=userData.gridData.splitBy("name");
 	alignmentName=myApp.dhxToolbar2.getListOptionText("alignmentSelect",myApp.dhxToolbar2.getListOptionSelected("alignmentSelect"));
 	if (!alignmentName) {return false;}
@@ -45,12 +56,12 @@ myApp.redrawChart=function (){
 			userData.gridData.rotateMeasPos(rotation);
 			data=userData.gridData.splitBy("name");
 			statusTip="对位点:"+alignmentName;
-			statusTip+="　　　X轴拉伸:"+userData.scaleX;
-			statusTip+=",Y轴拉伸:"+userData.scaleY;
-			statusTip+="　　　旋转角度:"+roundTo(rotation,8);
+			statusTip+="　　　X轴拉伸:"+Math.round(userData.scaleX*1000000-1000000)+" ppm";
+			statusTip+=",　Y轴拉伸:"+Math.round(userData.scaleY*1000000-1000000)+" ppm";
+			statusTip+="　　　旋转角度:"+roundTo(rotation,8)+"rad";
 			statusTip+="　　　XY轴翻转："+(fitAxis.swapXY?"Yes":"No");
-			statusTip+=", X轴镜像："+(fitAxis.reverseX?"Yes":"No");
-			statusTip+=", Y轴镜像："+(fitAxis.reverseY?"Yes":"No");
+			statusTip+=",　X轴镜像："+(fitAxis.reverseX?"Yes":"No");
+			statusTip+=",　Y轴镜像："+(fitAxis.reverseY?"Yes":"No");
 			myApp.statusBar.setText(statusTip);
 			break;
 		}
@@ -58,8 +69,13 @@ myApp.redrawChart=function (){
 	while (myApp.chart.series.length>0) {
 		myApp.chart.series[0].remove(false);
 	}
+	colorIndex=0;
 	for (var i=0;i<data.length;i++){
-		myApp.chart.addSeries(data[i].output(Number(myApp.dhxToolbar2.getValue("zoomSlider"))*100),false);
+		myApp.chart.addSeries(data[i].output(Number(myApp.dhxToolbar2.getValue("zoomSlider"))),false);
+		myApp.chart.series[i].color=userData.chartColors[colorIndex++];
+		if (colorIndex>=userData.chartColors.length) {
+			colorIndex=0;
+		}
 	}
 	myApp.chart.redraw();
 
@@ -68,7 +84,7 @@ myApp.redrawChart=function (){
 //清空Grid中的数据
 myApp.clearGrid=function (){
 	myApp.dhxGrid.clearAll();
-	for (var i=0;i<userData.rowCount;i++){
+	for (var i=1;i<=userData.rowCount;i++){
 		myApp.dhxGrid.addRow(i, [,,,,,1]);
 	}
 }
@@ -79,10 +95,10 @@ myApp.readGridData=function (){
 	try{
 		for (var i=0;i<myApp.dhxGrid.getRowsNum();i++){
 			if (myApp.dhxGrid.cells2(i,0).getValue()!=""){
-				if (myApp.dhxGrid.cells2(i,1).getValue()=="") {myApp.dhxGrid.cells2(i,2).setValue("0")};
-				if (myApp.dhxGrid.cells2(i,2).getValue()=="") {myApp.dhxGrid.cells2(i,3).setValue("0")};
-				if (myApp.dhxGrid.cells2(i,3).getValue()=="") {myApp.dhxGrid.cells2(i,4).setValue("0")};
-				if (myApp.dhxGrid.cells2(i,4).getValue()=="") {myApp.dhxGrid.cells2(i,5).setValue("0")};
+				if (myApp.dhxGrid.cells2(i,1).getValue()=="") {myApp.dhxGrid.cells2(i,1).setValue("0")};
+				if (myApp.dhxGrid.cells2(i,2).getValue()=="") {myApp.dhxGrid.cells2(i,2).setValue("0")};
+				if (myApp.dhxGrid.cells2(i,3).getValue()=="") {myApp.dhxGrid.cells2(i,3).setValue("0")};
+				if (myApp.dhxGrid.cells2(i,4).getValue()=="") {myApp.dhxGrid.cells2(i,4).setValue("0")};
 				userData.gridData.addPoint({
 					isScale:myApp.dhxGrid.cells2(i,5)==0?false:true,
 					name:String(myApp.dhxGrid.cells2(i,0).getValue()),
@@ -106,18 +122,27 @@ myApp.refreshGroupName=function (){
 	var nameArr=myApp.getGroupNames();
 	myApp.refreshListOption(myApp.dhxToolbar2,"alignmentSelect",nameArr);
 	myApp.refreshListOption(myApp.dhxToolbar2,"scaleSelect",nameArr);
-	var alignmentSelect=myApp.dhxToolbar2.getListOptionSelected("alignmentSelect");
-	if (!alignmentSelect && nameArr.length>0) {
-		myApp.dhxToolbar2.setListOptionSelected("alignmentSelect","alignmentSelect_1");
-		myApp.dhxToolbar2.setItemText("alignmentSelect",myApp.dhxToolbar2.getListOptionText("alignmentSelect","alignmentSelect_1")+" 对位");
+	if (nameArr.length===0) {
+		myApp.dhxToolbar2.setItemText("alignmentSelect","对位点选择...");
+		myApp.dhxToolbar2.disableItem("alignmentSelect");
+		myApp.dhxToolbar2.disableItem("scaleSelect");
+	}else{
+		myApp.dhxToolbar2.enableItem("alignmentSelect");
+		myApp.dhxToolbar2.enableItem("scaleSelect");
+		var alignmentSelect=myApp.dhxToolbar2.getListOptionSelected("alignmentSelect");
+		if (!alignmentSelect && nameArr.length>0) {
+			myApp.dhxToolbar2.setListOptionSelected("alignmentSelect","alignmentSelect_1");
+			myApp.dhxToolbar2.setItemText("alignmentSelect",myApp.dhxToolbar2.getListOptionText("alignmentSelect","alignmentSelect_1")+" 对位");
+		}
 	}
 }
 
 //获取表格分组名称数组
 myApp.getGroupNames=function (){
-	var nameArr=[];
+	var nameArr=[],v;
 	for (var i=0;i<myApp.dhxGrid.getRowsNum();i++){
-		if (nameArr.inArray(myApp.dhxGrid.cells2(i,0).getValue())===-1){
+		v=myApp.dhxGrid.cells2(i,0).getValue();
+		if (v!=="" && nameArr.inArray(v)===-1){
 			nameArr.push(myApp.dhxGrid.cells2(i,0).getValue());
 		}
 	}
@@ -188,17 +213,6 @@ $(document).ready(function() {
             type: 'scatter',
 			zoomType: 'xy'
         },
-        colors: [
-			'#4572A7', 
-			'#AA4643', 
-			'#89A54E', 
-			'#80699B', 
-			'#3D96AE', 
-			'#DB843D', 
-			'#92A8CD', 
-			'#A47D7C', 
-			'#B5CA92'
-		],
 		credits: {
 			enabled: true,
 			href: 'http://helscn.talk4fun.net/',
@@ -266,6 +280,7 @@ $(document).ready(function() {
 		switch (id) {
 			case "new":
 				myApp.clearGrid();
+				myApp.refreshGroupName();
 				break;
 			case "open":
 				myApp.dhxGrid.clearAll();
@@ -358,8 +373,8 @@ $(document).ready(function() {
 	//Grid事件绑定
 	myApp.dhxGrid.attachEvent("onEditCell", function(stage,rId,cInd,nValue,oValue){
 		if (stage!==2 || nValue=="") {return true;}
-		if (rId==myApp.dhxGrid.getRowsNum()-1) {
-			myApp.dhxGrid.addRow(myApp.dhxGrid.getRowsNum(), [,,,,,1]);
+		if (rId==myApp.dhxGrid.getRowsNum()) {
+			myApp.dhxGrid.addRow(myApp.dhxGrid.getRowsNum()+1, [,,,,,1]);
 		}
 		if (cInd===0) {
 			myApp.refreshGroupName();
