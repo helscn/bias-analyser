@@ -330,7 +330,7 @@ Points.prototype.calcStdev=function (transform){
 	for (var i=0;i<this.points.length;i++){
 		measX=transform.swapXY?(transform.reverseX?-this.points[i].measY:this.points[i].measY):(transform.reverseX?-this.points[i].measX:this.points[i].measX);
 		measY=transform.swapXY?(transform.reverseY?-this.points[i].measX:this.points[i].measX):(transform.reverseY?-this.points[i].measY:this.points[i].measY);
-		if (this.points[i].isScale){
+		if (this.points[i].isScale==true){
 			s+=Math.pow(measX-this.points[i].specX*this.points[i].scaleX,2)+Math.pow(measY-this.points[i].specY*this.points[i].scaleY,2);
 		}else{
 			s+=Math.pow(measX-this.points[i].specX,2)+Math.pow(measY-this.points[i].specY,2);
@@ -350,7 +350,7 @@ Points.prototype.calcScaleFactor=function (threshold){
 	var tempPoint;
 	for (var i=0;i<this.points.length;i++){
 		tempPoint=this.points[i];
-		if (tempPoint.isScale){
+		if (tempPoint.isScale==true){
 			if (Math.abs(tempPoint.specX)>thresholdX && tempPoint.measX/tempPoint.specX>0) {
 				tempX+=tempPoint.measX/tempPoint.specX;
 				countX+=1;

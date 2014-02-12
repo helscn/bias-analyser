@@ -1,7 +1,9 @@
 ﻿//定义全局变量
 var userData = {
 	gridData : new Points("gridData"),		//保存的Grid中的数据
-	rowCount : 20 				  			//Grid的默认行数
+	rowCount : 20, 				  			//Grid的默认行数
+	scaleX: 1.0,							//标准坐标的X轴拉伸倍率
+	scaleY: 1.0								//标准坐标的X轴拉伸倍率
 };
 
 var myApp = {
@@ -10,8 +12,7 @@ var myApp = {
 	dhxToolbar1 : new Object,
 	dhxToolbar2 : new Object,
 	statusBar : new Object,
-	chart : new Object,
-	regNum : /^\-?\d+\.?\d*$/gi
+	chart : new Object
 };
 
 
@@ -37,9 +38,9 @@ myApp.redrawChart=function (){
 			userData.gridData.shiftSpecPos(shift.specShift);
 			userData.gridData.shiftMeasPos(shift.measShift);
 			fitAxis=userData.gridData.autoFitAxis();
-			if (fitAxis.swapXY) {data[i].swapMeasXY();}
-			if (fitAxis.reverseX) {data[i].reverseMeasX();}
-			if (fitAxis.reverseY) {data[i].reverseMeasY();}
+			if (fitAxis.swapXY===true) {data[i].swapMeasXY();}
+			if (fitAxis.reverseX===true) {data[i].reverseMeasX();}
+			if (fitAxis.reverseY===true) {data[i].reverseMeasY();}
 			rotation=data[i].calcRotation();
 			userData.gridData.rotateMeasPos(rotation);
 			data=userData.gridData.splitBy("name");
@@ -99,7 +100,7 @@ myApp.refreshGroupName=function (){
 	myApp.refreshListOption(myApp.dhxToolbar2,"scaleSelect",nameArr);
 	var alignmentSelect=myApp.dhxToolbar2.getListOptionSelected("alignmentSelect");
 	if (!alignmentSelect && nameArr.length>0) {
-		myApp.dhxToolbar2.setListOptionSelected("alignmentSelect",1);
+		myApp.dhxToolbar2.setListOptionSelected("alignmentSelect","alignmentSelect_1");
 	}
 }
 
@@ -123,9 +124,9 @@ myApp.refreshListOption=function (toolbar,listOptionId,options){
 		toolbar.removeListOption(listOptionId,oldOptionIds[i]);
 	}
 	for (var i=0;i<options.length;i++){
-		toolbar.addListOption(listOptionId,i+1,i+1,"button",options[i]);
+		toolbar.addListOption(listOptionId,listOptionId+'_'+(i+1),i+1,"button",options[i]);
 		if (options[i]==oldValue) {
-			toolbar.setListOptionSelected(listOptionId,i+1);
+			toolbar.setListOptionSelected(listOptionId,listOptionId+'_'+(i+1));
 		}
 	}
 }
@@ -259,17 +260,6 @@ $(document).ready(function() {
 			case "open":
 				myApp.dhxGrid.clearAll();
 				$("#filePath").click();
-				myApp.dhxGrid.load($("#filePath").attr("value"),"csv");
-				for (var i=0;i<myApp.dhxGrid.getRowsNum();i++){
-					if (myApp.dhxGrid.cells2(i,0).getValue()!=""){
-						if (myApp.dhxGrid.cells2(i,1).getValue()=="") {myApp.dhxGrid.cells2(i,2).setValue("0")};
-						if (myApp.dhxGrid.cells2(i,2).getValue()=="") {myApp.dhxGrid.cells2(i,3).setValue("0")};
-						if (myApp.dhxGrid.cells2(i,3).getValue()=="") {myApp.dhxGrid.cells2(i,4).setValue("0")};
-						if (myApp.dhxGrid.cells2(i,4).getValue()=="") {myApp.dhxGrid.cells2(i,5).setValue("0")};
-					}
-				}
-				myApp.dhxGrid.checkAll(true);
-				myApp.refreshGroupName();
 				break;
 			case "copy":
 				myApp.dhxGrid.copyBlockToClipboard();
@@ -290,7 +280,23 @@ $(document).ready(function() {
 		}
 	});
 	myApp.dhxToolbar2.attachEvent("onEnter", function(id, value){
-		alert(value);
+		var v;
+		var regScale=/^(1|1\.\d*|0\.\d*)$/gi;
+		switch (id){
+			case "scaleX":
+				v=myApp.dhxToolbar2.getValue("scaleX").replace(/\s/gi,'');
+				if (regScale.test(v)===true) {
+					myApp.dhxToolbar2.setValue("scaleX",v);
+					userData.scaleX=Number(v);
+				}
+				break;
+			case "scaleY":
+				v=myApp.dhxToolbar2.getValue("scaleY").replace(/\s/gi,'');
+				myApp.dhxToolbar2.setValue("scaleY",v);
+				if (regScale.test(v)===true) {
+					
+				}
+		}
 	});
 	myApp.dhxToolbar2.attachEvent("onClick",function(id){
 		alert(id);
@@ -305,20 +311,36 @@ $(document).ready(function() {
 		if (cInd===0) {
 			myApp.refreshGroupName();
 		}else if (cInd<5){
-			var v=nValue.replace(/\s/gi,'');
-			if (myApp.regNum.test(v)){
-				return v;
-			}else{
-				alert("输入的数据格式不正确！")
+			var reg=/^\-?\d+\.?\d*$/gi;
+			var bool=reg.test(nValue);
+			if (bool===true) {
+				return true;
+			} else {
+				alert('输入的数据格式不正确！');
 				return false;
 			}
 		}
 		return true;
 	});
+	
+	//文件选择事件绑定
+	$("#filePath").change(function (){
+		myApp.dhxGrid.load($("#filePath").attr("value"),"csv");
+		for (var i=0;i<myApp.dhxGrid.getRowsNum();i++){
+			if (myApp.dhxGrid.cells2(i,0).getValue()!=""){
+				if (myApp.dhxGrid.cells2(i,1).getValue()=="") {myApp.dhxGrid.cells2(i,2).setValue("0")};
+				if (myApp.dhxGrid.cells2(i,2).getValue()=="") {myApp.dhxGrid.cells2(i,3).setValue("0")};
+				if (myApp.dhxGrid.cells2(i,3).getValue()=="") {myApp.dhxGrid.cells2(i,4).setValue("0")};
+				if (myApp.dhxGrid.cells2(i,4).getValue()=="") {myApp.dhxGrid.cells2(i,5).setValue("0")};
+			}
+		}
+		myApp.dhxGrid.checkAll(true);
+		myApp.refreshGroupName();
+	})
 
 	//windows事件绑定
 	$(window).resize(myApp.refreshChartSize);
 	myApp.refreshChartSize();
 
-
+	
 });
