@@ -37,6 +37,9 @@ myApp.refreshChartSize=function (){
 //重新绘制图表数据
 myApp.redrawChart=function (){
 	myApp.readGridData();
+	while (myApp.chart.series.length>0) {
+		myApp.chart.series[0].remove(false);
+	}
 	if (userData.gridData.points.length===0) {return false;}
 	userData.gridData.setScale({x:userData.scaleX,y:userData.scaleY})
 	var data,alignmentName,shift,fitAxis,rotation,statusTip,colorIndex;
@@ -65,9 +68,6 @@ myApp.redrawChart=function (){
 			myApp.statusBar.setText(statusTip);
 			break;
 		}
-	}
-	while (myApp.chart.series.length>0) {
-		myApp.chart.series[0].remove(false);
 	}
 	colorIndex=0;
 	for (var i=0;i<data.length;i++){
@@ -281,10 +281,30 @@ $(document).ready(function() {
 			case "new":
 				myApp.clearGrid();
 				myApp.refreshGroupName();
+				myApp.redrawChart();
 				break;
 			case "open":
 				myApp.dhxGrid.clearAll();
+				$("#filePath").select();
+				document.selection.clear();
 				$("#filePath").click();
+				if ($("#filePath").val()!==""){
+					myApp.dhxGrid.load($("#filePath").val(),"csv");
+					for (var i=0;i<myApp.dhxGrid.getRowsNum();i++){
+						if (myApp.dhxGrid.cells2(i,0).getValue()!=""){
+							if (myApp.dhxGrid.cells2(i,1).getValue()=="") {myApp.dhxGrid.cells2(i,2).setValue("0")};
+							if (myApp.dhxGrid.cells2(i,2).getValue()=="") {myApp.dhxGrid.cells2(i,3).setValue("0")};
+							if (myApp.dhxGrid.cells2(i,3).getValue()=="") {myApp.dhxGrid.cells2(i,4).setValue("0")};
+							if (myApp.dhxGrid.cells2(i,4).getValue()=="") {myApp.dhxGrid.cells2(i,5).setValue("0")};
+						}
+					}
+					myApp.dhxGrid.checkAll(true);
+					myApp.refreshGroupName();
+				}else{
+					myApp.clearGrid();
+					myApp.refreshGroupName();
+				}
+				myApp.redrawChart();
 				break;
 			case "copy":
 				myApp.dhxGrid.copyBlockToClipboard();
@@ -401,21 +421,6 @@ $(document).ready(function() {
 		}
 		return true;
 	});
-		
-	//文件选择事件绑定
-	$("#filePath").change(function (){
-		myApp.dhxGrid.load($("#filePath").attr("value"),"csv");
-		for (var i=0;i<myApp.dhxGrid.getRowsNum();i++){
-			if (myApp.dhxGrid.cells2(i,0).getValue()!=""){
-				if (myApp.dhxGrid.cells2(i,1).getValue()=="") {myApp.dhxGrid.cells2(i,2).setValue("0")};
-				if (myApp.dhxGrid.cells2(i,2).getValue()=="") {myApp.dhxGrid.cells2(i,3).setValue("0")};
-				if (myApp.dhxGrid.cells2(i,3).getValue()=="") {myApp.dhxGrid.cells2(i,4).setValue("0")};
-				if (myApp.dhxGrid.cells2(i,4).getValue()=="") {myApp.dhxGrid.cells2(i,5).setValue("0")};
-			}
-		}
-		myApp.dhxGrid.checkAll(true);
-		myApp.refreshGroupName();
-	})
 
 	//windows事件绑定
 	$(window).resize(myApp.refreshChartSize);

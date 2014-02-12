@@ -9,5 +9,5 @@
 <!--
 	<item id="unitTrans"    type="button"   img="settings.gif"   text="单位转换"   />
 -->
-	<item id="redrawChart"   type="button"   img="chart.gif"  text="开始绘图" title="按照当前的数据绘制形变示意图" />
+	<item id="redrawChart"   type="button"   img="chart.gif"  text="刷新示意图" title="按照当前的数据绘制形变示意图" />
 </toolbar>
