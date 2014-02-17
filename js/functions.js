@@ -16,14 +16,14 @@
 	.swapMeasXY()						将量测坐标的X,Y进行交换
 */
 function Point(data){
-	this.isScale=new Boolean(data.isScale);
-	this.name=new String(data.name);
-	this.specX=new Number(data.specX || 0);
-	this.specY=new Number(data.specY || 0);
-	this.measX=new Number(data.measX || 0);
-	this.measY=new Number(data.measY || 0);
-	this.scaleX=new Number(data.scaleX || 1);
-	this.scaleY=new Number(data.scaleY || 1);
+	this.isScale=Boolean(data.isScale);
+	this.name=String(data.name);
+	this.specX=Number(data.specX || 0);
+	this.specY=Number(data.specY || 0);
+	this.measX=Number(data.measX || 0);
+	this.measY=Number(data.measY || 0);
+	this.scaleX=Number(data.scaleX || 1);
+	this.scaleY=Number(data.scaleY || 1);
 }
 
 
