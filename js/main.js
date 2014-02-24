@@ -19,11 +19,13 @@ var userData = {
 
 var myApp = {
 	dhxLayout : new Object,
+	dhxWins : new Object,
 	dhxGrid : new Object,
 	dhxToolbar1 : new Object,
 	dhxToolbar2 : new Object,
 	statusBar : new Object,
-	chart : new Object
+	chart : new Object,
+	popupWindow : new Object
 };
 
 
@@ -172,6 +174,15 @@ $(document).ready(function() {
 	myApp.dhxLayout.cells("b").setText("形变量示意图");
 	myApp.dhxLayout.setEffect('collapse', true);
 	myApp.dhxLayout.setEffect('resize', true);
+	
+	//定义弹窗对象
+	myApp.dhxWins = new dhtmlXWindows();
+	myApp.popupWindow=myApp.dhxWins.createWindow("popupWindow",0,0,400,300);
+	myApp.popupWindow.attachObject("popupWindow");
+	myApp.popupWindow.button("park").hide();
+	myApp.popupWindow.setText("提示");
+	myApp.popupWindow.centerOnScreen();
+	myApp.popupWindow.setModal(true);
 
 	//定义Grid对象
 	myApp.dhxGrid = myApp.dhxLayout.cells("a").attachGrid();

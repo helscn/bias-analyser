@@ -19,3 +19,9 @@ html, body {
 #filePath {
 	display:'none
 }
+
+#popupWindow {
+	font-size:10pt;
+	text-indent:2em;
+	margin:15px
+}
