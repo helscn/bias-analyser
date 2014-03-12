@@ -1,13 +1,12 @@
 ﻿<?xml version="1.0"?>
 <toolbar>
-	<item id="new"   type="button"   img="new.gif"  imgdis="new_dis.gif"  text="" title="清空当前表格数据" />
-	<item id="open"   type="button"   img="open.gif"  imgdis="open_dis.gif"  text="" title="导入CSV格式的文件数据" />
+	<item id="new"   type="button"   img="new.gif"  imgdis="new_dis.gif"  text="" title="清空当前表格数据。" />
+	<item id="open"   type="button"   img="open.gif"  imgdis="open_dis.gif"  text="" title="导入CSV格式的文件数据。" />
 	<item id="sep1"   type="separator"/>
 	<item id="copy"   type="button"   img="copy.gif"  imgdis="copy_dis.gif"  text="" title="复制当前选区数据到剪贴板" />
-	<item id="paste"   type="button"   img="paste.gif"  imgdis="paste_dis.gif"  text="" title="将剪贴板中的数据粘贴到数据表格中" />
+	<item id="paste"   type="button"   img="paste.gif"  imgdis="paste_dis.gif"  text="" title="将剪贴板中的数据粘贴到数据表格中。" />
 	<item id="sep2"   type="separator"/>
-<!--
-	<item id="unitTrans"    type="button"   img="settings.gif"   text="单位转换"   />
--->
-	<item id="redrawChart"   type="button"   img="chart.gif"  text="刷新示意图" title="按照当前的数据绘制形变示意图" />
+	<item id="add"   type="button"   img="add.gif"  imgdis="add_dis.gif"  text="" title="在当前数据表末尾增加一行。" />
+	<item id="sep3"   type="separator"/>
+	<item id="redrawChart"   type="button"   img="chart.gif"  imgdis="chart_dis.gif"  text="绘制示意图" title="按照当前的数据绘制变形量示意图。" />
 </toolbar>

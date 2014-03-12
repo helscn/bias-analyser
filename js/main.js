@@ -21,6 +21,7 @@ var myApp = {
 	dhxLayout : new Object,
 	dhxWins : new Object,
 	dhxGrid : new Object,
+	dhxMenu : new Object,
 	dhxToolbar1 : new Object,
 	dhxToolbar2 : new Object,
 	statusBar : new Object,
@@ -118,16 +119,44 @@ myApp.readGridData=function (){
 	return userData.gridData;
 }
 
+myApp.openCSV=function (){
+	myApp.dhxGrid.clearAll();
+	$("#filePath").select();
+	document.selection.clear();
+	$("#filePath").click();
+	if ($("#filePath").val()!==""){
+		myApp.dhxGrid.load($("#filePath").val(),"csv");
+		for (var i=0;i<myApp.dhxGrid.getRowsNum();i++){
+			if (myApp.dhxGrid.cells2(i,0).getValue()!=""){
+				if (myApp.dhxGrid.cells2(i,1).getValue()=="") {myApp.dhxGrid.cells2(i,2).setValue("0")};
+				if (myApp.dhxGrid.cells2(i,2).getValue()=="") {myApp.dhxGrid.cells2(i,3).setValue("0")};
+				if (myApp.dhxGrid.cells2(i,3).getValue()=="") {myApp.dhxGrid.cells2(i,4).setValue("0")};
+				if (myApp.dhxGrid.cells2(i,4).getValue()=="") {myApp.dhxGrid.cells2(i,5).setValue("0")};
+			}
+		}
+		myApp.dhxGrid.checkAll(true);
+		myApp.refreshGroupName();
+	}else{
+		myApp.clearGrid();
+		myApp.refreshGroupName();
+	}
+	myApp.redrawChart();
+}
+
 //刷新Chart工具栏中的下拉选择按钮
 myApp.refreshGroupName=function (){
 	var nameArr=myApp.getGroupNames();
 	myApp.refreshListOption(myApp.dhxToolbar2,"alignmentSelect",nameArr);
 	myApp.refreshListOption(myApp.dhxToolbar2,"scaleSelect",nameArr);
 	if (nameArr.length===0) {
+		myApp.dhxMenu.setItemDisabled("redrawChart");
+		myApp.dhxToolbar1.disableItem("redrawChart");
 		myApp.dhxToolbar2.setItemText("alignmentSelect","对位点选择...");
 		myApp.dhxToolbar2.disableItem("alignmentSelect");
 		myApp.dhxToolbar2.disableItem("scaleSelect");
 	}else{
+		myApp.dhxMenu.setItemEnabled("redrawChart");
+		myApp.dhxToolbar1.enableItem("redrawChart");
 		myApp.dhxToolbar2.enableItem("alignmentSelect");
 		myApp.dhxToolbar2.enableItem("scaleSelect");
 		var alignmentSelect=myApp.dhxToolbar2.getListOptionSelected("alignmentSelect");
@@ -177,12 +206,7 @@ $(document).ready(function() {
 	
 	//定义弹窗对象
 	myApp.dhxWins = new dhtmlXWindows();
-	myApp.popupWindow=myApp.dhxWins.createWindow("popupWindow",0,0,400,300);
-	myApp.popupWindow.attachObject("popupWindow");
-	myApp.popupWindow.button("park").hide();
-	myApp.popupWindow.setText("提示");
-	myApp.popupWindow.centerOnScreen();
-	myApp.popupWindow.setModal(true);
+	myApp.dhxWins.setImagePath("./lib/imgs/icons/");
 
 	//定义Grid对象
 	myApp.dhxGrid = myApp.dhxLayout.cells("a").attachGrid();
@@ -196,13 +220,20 @@ $(document).ready(function() {
 	myApp.clearGrid();
 	myApp.dhxGrid.enableBlockSelection(true); 
 	myApp.dhxGrid.enableMultiselect(true);
+	myApp.dhxGrid.csv.cell="\t";
+	myApp.dhxGrid.csv.row="\n";
+	
+	//定义Menu对象
+	myApp.dhxMenu = myApp.dhxLayout.cells("a").attachMenu();
+	myApp.dhxMenu.setIconsPath("./lib/imgs/icons/");
+	myApp.dhxMenu.loadXML("./xml/data_menu.xml?" + new Date().getTime());
 
 	//定义Toolbar对象
 	myApp.dhxToolbar1 = myApp.dhxLayout.cells("a").attachToolbar();
-	myApp.dhxToolbar1.setIconsPath("./lib/imgs/toolbar/");
+	myApp.dhxToolbar1.setIconsPath("./lib/imgs/icons/");
 	myApp.dhxToolbar1.loadXML("./xml/data_toolbar.xml?" + new Date().getTime());
 	myApp.dhxToolbar2 = myApp.dhxLayout.cells("b").attachToolbar();
-	myApp.dhxToolbar2.setIconsPath("./lib/imgs/toolbar/");
+	myApp.dhxToolbar2.setIconsPath("./lib/imgs/icons/");
 	myApp.dhxToolbar2.loadXML("./xml/chart_toolbar.xml?" + new Date().getTime());
 
 	//定义StatusBar对象
@@ -285,6 +316,51 @@ $(document).ready(function() {
 	myApp.dhxLayout.attachEvent("onCollapse",myApp.refreshChartSize);
 	myApp.dhxLayout.attachEvent("onExpand",myApp.refreshChartSize);
 	
+	//Menu事件绑定
+	myApp.dhxMenu.attachEvent("onClick",function (id,zoneId,casState){
+		switch (id){
+			case "redrawChart":
+				myApp.redrawChart();
+				break;
+			case "new":
+				myApp.clearGrid();
+				myApp.refreshGroupName();
+				myApp.redrawChart();
+				break;
+			case "open":
+				myApp.openCSV();
+				break;
+			case "add":
+				myApp.dhxGrid.addRow(myApp.dhxGrid.getRowsNum()+1, [,,,,,1]);
+				myApp.statusBar.setText("当前数据表行数："+myApp.dhxGrid.getRowsNum());
+				break;
+			case "copy":
+				myApp.dhxGrid.copyBlockToClipboard();
+				myApp.statusBar.setText("数据已经复制到剪贴板.");
+				break;
+			case "copyall":
+				myApp.dhxGrid.gridToClipboard();
+				myApp.statusBar.setText("所有数据已经全部复制到剪贴板中.");
+				break;
+			case "paste":
+				myApp.dhxGrid.pasteBlockFromClipboard();
+				break;
+			case "about":
+				var aboutWin=myApp.dhxWins.createWindow("popupWindow",0,0,300,200);
+				aboutWin.setModal(true);
+				aboutWin.attachURL("./about.html");
+				aboutWin.setIcon("about.gif","about_dis.gif");
+				aboutWin.button("park").hide();
+				aboutWin.setText("关于...");
+				aboutWin.centerOnScreen();
+				break;
+			case "needhelp":
+				
+				break;
+	
+		}
+	});
+	
 	//Toolbar事件绑定
 	myApp.dhxToolbar1.attachEvent("onClick",function (id){
 		switch (id) {
@@ -293,28 +369,12 @@ $(document).ready(function() {
 				myApp.refreshGroupName();
 				myApp.redrawChart();
 				break;
+			case "add":
+				myApp.dhxGrid.addRow(myApp.dhxGrid.getRowsNum()+1, [,,,,,1]);
+				myApp.statusBar.setText("当前数据表行数："+myApp.dhxGrid.getRowsNum());
+				break;
 			case "open":
-				myApp.dhxGrid.clearAll();
-				$("#filePath").select();
-				document.selection.clear();
-				$("#filePath").click();
-				if ($("#filePath").val()!==""){
-					myApp.dhxGrid.load($("#filePath").val(),"csv");
-					for (var i=0;i<myApp.dhxGrid.getRowsNum();i++){
-						if (myApp.dhxGrid.cells2(i,0).getValue()!=""){
-							if (myApp.dhxGrid.cells2(i,1).getValue()=="") {myApp.dhxGrid.cells2(i,2).setValue("0")};
-							if (myApp.dhxGrid.cells2(i,2).getValue()=="") {myApp.dhxGrid.cells2(i,3).setValue("0")};
-							if (myApp.dhxGrid.cells2(i,3).getValue()=="") {myApp.dhxGrid.cells2(i,4).setValue("0")};
-							if (myApp.dhxGrid.cells2(i,4).getValue()=="") {myApp.dhxGrid.cells2(i,5).setValue("0")};
-						}
-					}
-					myApp.dhxGrid.checkAll(true);
-					myApp.refreshGroupName();
-				}else{
-					myApp.clearGrid();
-					myApp.refreshGroupName();
-				}
-				myApp.redrawChart();
+				myApp.openCSV();
 				break;
 			case "copy":
 				myApp.dhxGrid.copyBlockToClipboard();
@@ -421,13 +481,33 @@ $(document).ready(function() {
 		return true;
 	});
 	myApp.dhxGrid.attachEvent("onKeyPress",function (code,cFlag,sFlag){
-		if (code===46 && cFlag===false && sFlag===false){
+		if (code===27 && cFlag===false && sFlag===false){
+			//按下ESC
 			myApp.dhxGrid.clearSelection();
 		}else if (code===67 && cFlag===true && sFlag==false) {
+			//按下Ctrl+C
 			myApp.dhxGrid.copyBlockToClipboard();
 			myApp.statusBar.setText("数据已经复制到剪贴板.");
 		}else if (code===86 && cFlag===true && sFlag==false){
+			//按下Ctrl+V
 			myApp.dhxGrid.pasteBlockFromClipboard();
+		}else if (code===67 && cFlag===true && sFlag==true){
+			//按下Ctrl+Shift+C
+			myApp.dhxGrid.gridToClipboard();
+			myApp.statusBar.setText("所有数据已经全部复制到剪贴板中.");
+		}else if (code===186 && cFlag===true && sFlag==false){
+			//按下Ctrl+;
+			myApp.dhxGrid.addRow(myApp.dhxGrid.getRowsNum()+1, [,,,,,1]);
+			myApp.statusBar.setText("当前数据表行数："+myApp.dhxGrid.getRowsNum());
+		}else if (code===77 && cFlag===true && sFlag==true){
+			//按下Ctrl+Shift+M
+			myApp.redrawChart();
+		}else if (code===78 && cFlag===true && sFlag==true){
+			//按下Ctrl+Shift+N
+			myApp.clearGrid();
+		}else if (code===79 && cFlag===true && sFlag==true){
+			//按下Ctrl+Shift+O
+			myApp.openCSV();
 		}
 		return true;
 	});
@@ -435,7 +515,8 @@ $(document).ready(function() {
 	//windows事件绑定
 	$(window).resize(myApp.refreshChartSize);
 	myApp.refreshChartSize();
+	myApp.dhxMenu.setItemDisabled("redrawChart");
+	myApp.dhxToolbar1.disableItem("redrawChart");
 	myApp.dhxToolbar2.disableItem("alignmentSelect");
 	myApp.dhxToolbar2.disableItem("scaleSelect");
-
 });
