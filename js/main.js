@@ -3,7 +3,7 @@ var userData = {
 	gridData : new Points("gridData"),		//保存的Grid中的数据
 	rowCount : 20, 				  			//Grid的默认行数
 	scaleX: 1.0,							//标准坐标的X轴拉伸倍率
-	scaleY: 1.0,								//标准坐标的X轴拉伸倍率
+	scaleY: 1.0,							//标准坐标的X轴拉伸倍率
 	chartColors: [
 		'#4572A7', 
 		'#AA4643', 
@@ -29,172 +29,6 @@ var myApp = {
 	popupWindow : new Object
 };
 
-
-//刷新图表容器的大小以适合窗口
-myApp.refreshChartSize=function (){
-	myApp.chart.container.style.width=myApp.dhxLayout.cells("b").getWidth()-8;
-	myApp.chart.container.style.height=myApp.dhxLayout.cells("b").getHeight()-65;
-	myApp.chart.setSize(myApp.dhxLayout.cells("b").getWidth()-8,myApp.dhxLayout.cells("b").getHeight()-65,false);
-}
-
-//重新绘制图表数据
-myApp.redrawChart=function (){
-	myApp.readGridData();
-	while (myApp.chart.series.length>0) {
-		myApp.chart.series[0].remove(false);
-	}
-	if (userData.gridData.points.length===0) {return false;}
-	userData.gridData.setScale({x:userData.scaleX,y:userData.scaleY})
-	var data,alignmentName,shift,fitAxis,rotation,statusTip,colorIndex;
-	data=userData.gridData.splitBy("name");
-	alignmentName=myApp.dhxToolbar2.getListOptionText("alignmentSelect",myApp.dhxToolbar2.getListOptionSelected("alignmentSelect"));
-	if (!alignmentName) {return false;}
-	for (var i=0;i<data.length;i++){
-		if (data[i].name==alignmentName) {
-			shift=data[i].autoShift();
-			userData.gridData.shiftSpecPos(shift.specShift);
-			userData.gridData.shiftMeasPos(shift.measShift);
-			fitAxis=userData.gridData.autoFitAxis();
-			if (fitAxis.swapXY===true) {data[i].swapMeasXY();}
-			if (fitAxis.reverseX===true) {data[i].reverseMeasX();}
-			if (fitAxis.reverseY===true) {data[i].reverseMeasY();}
-			rotation=data[i].calcRotation();
-			userData.gridData.rotateMeasPos(rotation);
-			data=userData.gridData.splitBy("name");
-			statusTip="对位点:"+alignmentName;
-			statusTip+="　　　X轴拉伸:"+Math.round(userData.scaleX*1000000-1000000)+" ppm";
-			statusTip+=",　Y轴拉伸:"+Math.round(userData.scaleY*1000000-1000000)+" ppm";
-			statusTip+="　　　旋转角度:"+roundTo(rotation,8)+"rad";
-			statusTip+="　　　XY轴翻转："+(fitAxis.swapXY?"Yes":"No");
-			statusTip+=",　X轴镜像："+(fitAxis.reverseX?"Yes":"No");
-			statusTip+=",　Y轴镜像："+(fitAxis.reverseY?"Yes":"No");
-			myApp.statusBar.setText(statusTip);
-			break;
-		}
-	}
-	colorIndex=0;
-	for (var i=0;i<data.length;i++){
-		myApp.chart.addSeries(data[i].output(Number(myApp.dhxToolbar2.getValue("zoomSlider"))),false);
-		myApp.chart.series[i].color=userData.chartColors[colorIndex++];
-		if (colorIndex>=userData.chartColors.length) {
-			colorIndex=0;
-		}
-	}
-	myApp.chart.redraw();
-}
-
-//清空Grid中的数据
-myApp.clearGrid=function (){
-	myApp.dhxGrid.clearAll();
-	for (var i=1;i<=userData.rowCount;i++){
-		myApp.dhxGrid.addRow(i, [,,,,,1]);
-	}
-}
-	
-//将Grid对象中的数据读取到userData.gridData中
-myApp.readGridData=function (){
-	userData.gridData.points=new Array();
-	try{
-		for (var i=0;i<myApp.dhxGrid.getRowsNum();i++){
-			if (myApp.dhxGrid.cells2(i,0).getValue()!=""){
-				if (myApp.dhxGrid.cells2(i,1).getValue()=="") {myApp.dhxGrid.cells2(i,1).setValue("0")};
-				if (myApp.dhxGrid.cells2(i,2).getValue()=="") {myApp.dhxGrid.cells2(i,2).setValue("0")};
-				if (myApp.dhxGrid.cells2(i,3).getValue()=="") {myApp.dhxGrid.cells2(i,3).setValue("0")};
-				if (myApp.dhxGrid.cells2(i,4).getValue()=="") {myApp.dhxGrid.cells2(i,4).setValue("0")};
-				userData.gridData.addPoint({
-					isScale:myApp.dhxGrid.cells2(i,5)==0?false:true,
-					name:String(myApp.dhxGrid.cells2(i,0).getValue()),
-					specX:Number(myApp.dhxGrid.cells2(i,1).getValue()),
-					specY:Number(myApp.dhxGrid.cells2(i,2).getValue()),
-					measX:Number(myApp.dhxGrid.cells2(i,3).getValue()),
-					measY:Number(myApp.dhxGrid.cells2(i,4).getValue())
-				});
-			}
-		}
-	}catch(e){
-		userData.gridData.clearData("gridData");
-		alert("读取数据时发生错误！\n  数据行编号："+(i+1));
-		userData.gridData.points=new Array();
-	}
-	return userData.gridData;
-}
-
-myApp.openCSV=function (){
-	myApp.dhxGrid.clearAll();
-	$("#filePath").select();
-	document.selection.clear();
-	$("#filePath").click();
-	if ($("#filePath").val()!==""){
-		myApp.dhxGrid.load($("#filePath").val(),"csv");
-		for (var i=0;i<myApp.dhxGrid.getRowsNum();i++){
-			if (myApp.dhxGrid.cells2(i,0).getValue()!=""){
-				if (myApp.dhxGrid.cells2(i,1).getValue()=="") {myApp.dhxGrid.cells2(i,2).setValue("0")};
-				if (myApp.dhxGrid.cells2(i,2).getValue()=="") {myApp.dhxGrid.cells2(i,3).setValue("0")};
-				if (myApp.dhxGrid.cells2(i,3).getValue()=="") {myApp.dhxGrid.cells2(i,4).setValue("0")};
-				if (myApp.dhxGrid.cells2(i,4).getValue()=="") {myApp.dhxGrid.cells2(i,5).setValue("0")};
-			}
-		}
-		myApp.dhxGrid.checkAll(true);
-		myApp.refreshGroupName();
-	}else{
-		myApp.clearGrid();
-		myApp.refreshGroupName();
-	}
-	myApp.redrawChart();
-}
-
-//刷新Chart工具栏中的下拉选择按钮
-myApp.refreshGroupName=function (){
-	var nameArr=myApp.getGroupNames();
-	myApp.refreshListOption(myApp.dhxToolbar2,"alignmentSelect",nameArr);
-	myApp.refreshListOption(myApp.dhxToolbar2,"scaleSelect",nameArr);
-	if (nameArr.length===0) {
-		myApp.dhxMenu.setItemDisabled("redrawChart");
-		myApp.dhxToolbar1.disableItem("redrawChart");
-		myApp.dhxToolbar2.setItemText("alignmentSelect","对位点选择...");
-		myApp.dhxToolbar2.disableItem("alignmentSelect");
-		myApp.dhxToolbar2.disableItem("scaleSelect");
-	}else{
-		myApp.dhxMenu.setItemEnabled("redrawChart");
-		myApp.dhxToolbar1.enableItem("redrawChart");
-		myApp.dhxToolbar2.enableItem("alignmentSelect");
-		myApp.dhxToolbar2.enableItem("scaleSelect");
-		var alignmentSelect=myApp.dhxToolbar2.getListOptionSelected("alignmentSelect");
-		if (!alignmentSelect && nameArr.length>0) {
-			myApp.dhxToolbar2.setListOptionSelected("alignmentSelect","alignmentSelect_1");
-			myApp.dhxToolbar2.setItemText("alignmentSelect",myApp.dhxToolbar2.getListOptionText("alignmentSelect","alignmentSelect_1")+" 对位");
-		}
-	}
-}
-
-//获取表格分组名称数组
-myApp.getGroupNames=function (){
-	var nameArr=[],v;
-	for (var i=0;i<myApp.dhxGrid.getRowsNum();i++){
-		v=myApp.dhxGrid.cells2(i,0).getValue();
-		if (v!=="" && nameArr.inArray(v)===-1){
-			nameArr.push(myApp.dhxGrid.cells2(i,0).getValue());
-		}
-	}
-	return nameArr;
-}
-
-//Chart工具栏选择项目刷新函数
-myApp.refreshListOption=function (toolbar,listOptionId,options){
-	var oldOptionIds=toolbar.getAllListOptions(listOptionId);
-	var oldValue=toolbar.getListOptionSelected(listOptionId);
-	if (oldValue) {oldValue=toolbar.getListOptionText(listOptionId,oldValue);}
-	for (var i=0;i<oldOptionIds.length;i++){
-		toolbar.removeListOption(listOptionId,oldOptionIds[i]);
-	}
-	for (var i=0;i<options.length;i++){
-		toolbar.addListOption(listOptionId,listOptionId+'_'+(i+1),i+1,"button",options[i]);
-		if (options[i]==oldValue) {
-			toolbar.setListOptionSelected(listOptionId,listOptionId+'_'+(i+1));
-		}
-	}
-}
-
 $(document).ready(function() {
 	//定义Layout对象
 	myApp.dhxLayout = new dhtmlXLayoutObject(document.body, "2U");
@@ -217,7 +51,6 @@ $(document).ready(function() {
 	myApp.dhxGrid.setColAlign("center,right,right,right,right,center");
 	myApp.dhxGrid.setColTypes("edtxt,edtxt,edtxt,edtxt,edtxt,ch");
 	myApp.dhxGrid.init();
-	myApp.clearGrid();
 	myApp.dhxGrid.enableBlockSelection(true); 
 	myApp.dhxGrid.enableMultiselect(true);
 	myApp.dhxGrid.csv.cell="\t";
@@ -238,7 +71,7 @@ $(document).ready(function() {
 
 	//定义StatusBar对象
 	myApp.statusBar = myApp.dhxLayout.attachStatusBar();
-	myApp.statusBar.setText("Ready.");
+	myApp.statusBar.setText("准备就绪.");
 
 	//定义Chart对象
 	myApp.dhxLayout.cells("b").attachObject("chart");
@@ -268,7 +101,7 @@ $(document).ready(function() {
 				color: '#909090',
 				fontSize: '10px'
 			},
-			text: 'By helscn'			
+			text: 'Powered by helscn'			
 		},
 		title: {
 			text: '',
@@ -309,7 +142,196 @@ $(document).ready(function() {
         },
         series: []
     });
-	
+
+	//刷新图表容器的大小以适合窗口
+	myApp.refreshChartSize=function (){
+		myApp.chart.container.style.width=myApp.dhxLayout.cells("b").getWidth()-8;
+		myApp.chart.container.style.height=myApp.dhxLayout.cells("b").getHeight()-65;
+		myApp.chart.setSize(myApp.dhxLayout.cells("b").getWidth()-8,myApp.dhxLayout.cells("b").getHeight()-65,false);
+	}
+
+	//检查输入框中的涨缩拉伸系数
+	myApp.checkScaleInput=function (id){
+		if (id!=="scaleX" && id!=="scaleY") {return null;}
+		var scaleValue,regScale=/^(1|1\.\d*|0\.\d*)$/gi;
+		scaleValue=myApp.dhxToolbar2.getValue(id).replace(/\s/gi,'');
+		if (regScale.test(scaleValue)){
+			userData[id]=parseFloat(scaleValue);
+		}else{
+			myApp.dhxToolbar2.setValue(id,roundTo(userData[id],6))
+		}
+	}
+
+	//清空Grid中的数据
+	myApp.clearGrid=function (){
+		myApp.dhxGrid.clearAll();
+		for (var i=1;i<=userData.rowCount;i++){
+			myApp.dhxGrid.addRow(i, [,,,,,1]);
+		}
+	}
+
+	//获取表格分组名称数组
+	myApp.getGroupNames=function (){
+		var nameArr=[],v;
+		for (var i=0;i<myApp.dhxGrid.getRowsNum();i++){
+			v=myApp.dhxGrid.cells2(i,0).getValue();
+			if (v!=="" && nameArr.inArray(v)===-1){
+				nameArr.push(myApp.dhxGrid.cells2(i,0).getValue());
+			}
+		}
+		return nameArr;
+	}
+
+
+	//将Grid对象中的数据读取到userData.gridData中
+	myApp.readGridData=function (){
+		userData.gridData.points=new Array();
+		try{
+			for (var i=0;i<myApp.dhxGrid.getRowsNum();i++){
+				if (myApp.dhxGrid.cells2(i,0).getValue()!=""){
+					if (myApp.dhxGrid.cells2(i,1).getValue()=="") {myApp.dhxGrid.cells2(i,1).setValue("0")};
+					if (myApp.dhxGrid.cells2(i,2).getValue()=="") {myApp.dhxGrid.cells2(i,2).setValue("0")};
+					if (myApp.dhxGrid.cells2(i,3).getValue()=="") {myApp.dhxGrid.cells2(i,3).setValue("0")};
+					if (myApp.dhxGrid.cells2(i,4).getValue()=="") {myApp.dhxGrid.cells2(i,4).setValue("0")};
+					userData.gridData.addPoint({
+						isScale:myApp.dhxGrid.cells2(i,5)==0?false:true,
+						name:String(myApp.dhxGrid.cells2(i,0).getValue()),
+						specX:Number(myApp.dhxGrid.cells2(i,1).getValue()),
+						specY:Number(myApp.dhxGrid.cells2(i,2).getValue()),
+						measX:Number(myApp.dhxGrid.cells2(i,3).getValue()),
+						measY:Number(myApp.dhxGrid.cells2(i,4).getValue())
+					});
+				}
+			}
+		}catch(e){
+			userData.gridData.clearData("gridData");
+			alert("读取数据时发生错误！\n  数据行编号："+(i+1));
+			userData.gridData.points=new Array();
+		}
+		return userData.gridData;
+	}
+
+	//重新绘制图表数据
+	myApp.redrawChart=function (){
+		myApp.checkScaleInput("scaleX");
+		myApp.checkScaleInput("scaleY");
+		myApp.readGridData();
+		while (myApp.chart.series.length>0) {
+			myApp.chart.series[0].remove(false);
+		}
+		if (userData.gridData.points.length===0) {return false;}
+		userData.gridData.setScale({x:userData.scaleX,y:userData.scaleY})
+		var data,alignmentName,shift,fitAxis,rotation,statusTip,colorIndex;
+		data=userData.gridData.splitBy("name");
+		alignmentName=myApp.dhxToolbar2.getListOptionText("alignmentSelect",myApp.dhxToolbar2.getListOptionSelected("alignmentSelect"));
+		if (!alignmentName) {return false;}
+		for (var i=0;i<data.length;i++){
+			if (data[i].name==alignmentName) {
+				shift=data[i].autoShift();
+				userData.gridData.shiftSpecPos(shift.specShift);
+				userData.gridData.shiftMeasPos(shift.measShift);
+				fitAxis=userData.gridData.autoFitAxis();
+				if (fitAxis.swapXY===true) {data[i].swapMeasXY();}
+				if (fitAxis.reverseX===true) {data[i].reverseMeasX();}
+				if (fitAxis.reverseY===true) {data[i].reverseMeasY();}
+				rotation=data[i].calcRotation();
+				userData.gridData.rotateMeasPos(rotation);
+				data=userData.gridData.splitBy("name");
+				statusTip="对位点:"+alignmentName;
+				statusTip+="　　　X轴拉伸:"+Math.round(userData.scaleX*1000000-1000000)+" ppm";
+				statusTip+=",　Y轴拉伸:"+Math.round(userData.scaleY*1000000-1000000)+" ppm";
+				statusTip+="　　　旋转角度:"+roundTo(rotation,8)+"rad";
+				statusTip+="　　　XY轴翻转："+(fitAxis.swapXY?"Yes":"No");
+				statusTip+=",　X轴镜像："+(fitAxis.reverseX?"Yes":"No");
+				statusTip+=",　Y轴镜像："+(fitAxis.reverseY?"Yes":"No");
+				myApp.statusBar.setText(statusTip);
+				break;
+			}
+		}
+		colorIndex=0;
+		for (var i=0;i<data.length;i++){
+			myApp.chart.addSeries(data[i].output(Number(myApp.dhxToolbar2.getValue("zoomSlider"))),false);
+			myApp.chart.series[i].color=userData.chartColors[colorIndex++];
+			if (colorIndex>=userData.chartColors.length) {
+				colorIndex=0;
+			}
+		}
+		myApp.chart.redraw();
+	}
+
+	//Chart工具栏选择项目刷新函数
+	myApp.refreshListOption=function (toolbar,listOptionId,options){
+		var oldOptionIds=toolbar.getAllListOptions(listOptionId);
+		var oldValue=toolbar.getListOptionSelected(listOptionId);
+		if (oldValue) {oldValue=toolbar.getListOptionText(listOptionId,oldValue);}
+		for (var i=0;i<oldOptionIds.length;i++){
+			toolbar.removeListOption(listOptionId,oldOptionIds[i]);
+		}
+		for (var i=0;i<options.length;i++){
+			toolbar.addListOption(listOptionId,listOptionId+'_'+(i+1),i+1,"button",options[i]);
+			if (options[i]==oldValue) {
+				toolbar.setListOptionSelected(listOptionId,listOptionId+'_'+(i+1));
+			}
+		}
+	}
+
+	//刷新Chart工具栏中的下拉选择按钮
+	myApp.refreshGroupName=function (){
+		var nameArr=myApp.getGroupNames();
+		myApp.refreshListOption(myApp.dhxToolbar2,"alignmentSelect",nameArr);
+		myApp.refreshListOption(myApp.dhxToolbar2,"scaleSelect",nameArr);
+		if (nameArr.length===0) {
+			myApp.dhxMenu.setItemDisabled("redrawChart");
+			myApp.dhxToolbar1.disableItem("redrawChart");
+			myApp.dhxToolbar2.setItemText("alignmentSelect","对位点选择...");
+			myApp.dhxToolbar2.disableItem("alignmentSelect");
+			myApp.dhxToolbar2.disableItem("scaleSelect");
+		}else{
+			myApp.dhxMenu.setItemEnabled("redrawChart");
+			myApp.dhxToolbar1.enableItem("redrawChart");
+			myApp.dhxToolbar2.enableItem("alignmentSelect");
+			myApp.dhxToolbar2.enableItem("scaleSelect");
+			var alignmentSelect=myApp.dhxToolbar2.getListOptionSelected("alignmentSelect");
+			if (!alignmentSelect && nameArr.length>0) {
+				myApp.dhxToolbar2.setListOptionSelected("alignmentSelect","alignmentSelect_1");
+				myApp.dhxToolbar2.setItemText("alignmentSelect",myApp.dhxToolbar2.getListOptionText("alignmentSelect","alignmentSelect_1")+" 对位");
+			}
+		}
+	}
+
+	//载入CSV格式的数据文件
+	myApp.loadCSV=function (v){
+		myApp.dhxGrid.clearAll();
+		myApp.dhxGrid.load(v,"csv");
+		for (var i=0;i<myApp.dhxGrid.getRowsNum();i++){
+			if (myApp.dhxGrid.cells2(i,0).getValue()!=""){
+				if (myApp.dhxGrid.cells2(i,1).getValue()=="") {myApp.dhxGrid.cells2(i,2).setValue("0")};
+				if (myApp.dhxGrid.cells2(i,2).getValue()=="") {myApp.dhxGrid.cells2(i,3).setValue("0")};
+				if (myApp.dhxGrid.cells2(i,3).getValue()=="") {myApp.dhxGrid.cells2(i,4).setValue("0")};
+				if (myApp.dhxGrid.cells2(i,4).getValue()=="") {myApp.dhxGrid.cells2(i,5).setValue("0")};
+			}
+		}
+		myApp.dhxGrid.checkAll(true);
+		myApp.refreshGroupName();
+		myApp.redrawChart();
+	}
+
+	//打开并载入CSV格式的数据文件
+	myApp.openCSV=function (){
+		$("input.fileSelect").remove();
+		var $file=$("<input>", {
+			"class": "fileSelect",
+			type: "file"
+		}).appendTo("body");
+		$file.change(function(){
+			myApp.dhxGrid.csv.cell=",";
+			myApp.dhxGrid.csv.row="\n";
+			myApp.loadCSV($(this).val());
+			myApp.dhxGrid.csv.cell="\t";
+		});
+		$file.click();
+	}
+
 	//Layout事件绑定
 	myApp.dhxLayout.attachEvent("onResizeFinish",myApp.refreshChartSize);
 	myApp.dhxLayout.attachEvent("onPanelResizeFinish",myApp.refreshChartSize);
@@ -354,14 +376,15 @@ $(document).ready(function() {
 				aboutWin.setText("关于...");
 				aboutWin.centerOnScreen();
 				break;
-			case "needhelp":
-				
+			case "loadSample":
+				myApp.loadCSV("./xml/sample.csv")
 				break;
 	
 		}
 	});
 	
 	//Toolbar事件绑定
+	myApp.clearGrid();
 	myApp.dhxToolbar1.attachEvent("onClick",function (id){
 		switch (id) {
 			case "new":
@@ -438,27 +461,15 @@ $(document).ready(function() {
 		}
 	})
 	
-	//输入框变更事件绑定
-	$("div[idd]>input.inp").change(function (){
-		var v=$(this).val().replace(/\s/gi,'');
-		var id=$(this).parent().attr("idd");
-		var regScale=/^(1|1\.\d*|0\.\d*)$/gi;
-		switch (id){
-			case "scaleX":
-				if (regScale.test(v)===true) {
-					userData.scaleX=Number(v);
-				}
-				$(this).val(userData.scaleX)
-				break;
-			case "scaleY":
-				if (regScale.test(v)===true) {
-					userData.scaleY=Number(v);
-				}
-				$(this).val(userData.scaleY)
-				break;
-		}
-		myApp.redrawChart();
-	})
+	//输入框输入事件绑定
+	myApp.dhxToolbar2.attachEvent("onEnter", function(id, value){
+		myApp.dhxToolbar2.forEachItem(function(itemId) {
+			if (itemId==="scaleX" || itemId==="scaleY"){
+				myApp.checkScaleInput(itemId);
+				myApp.redrawChart();
+			}
+		});
+	});
 	
 	//Grid事件绑定
 	myApp.dhxGrid.attachEvent("onEditCell", function(stage,rId,cInd,nValue,oValue){
@@ -480,6 +491,7 @@ $(document).ready(function() {
 		}
 		return true;
 	});
+	
 	myApp.dhxGrid.attachEvent("onKeyPress",function (code,cFlag,sFlag){
 		if (code===27 && cFlag===false && sFlag===false){
 			//按下ESC
@@ -511,7 +523,7 @@ $(document).ready(function() {
 		}
 		return true;
 	});
-
+	
 	//windows事件绑定
 	$(window).resize(myApp.refreshChartSize);
 	myApp.refreshChartSize();
@@ -519,4 +531,5 @@ $(document).ready(function() {
 	myApp.dhxToolbar1.disableItem("redrawChart");
 	myApp.dhxToolbar2.disableItem("alignmentSelect");
 	myApp.dhxToolbar2.disableItem("scaleSelect");
+
 });

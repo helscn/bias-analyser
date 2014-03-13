@@ -2,8 +2,7 @@ html, body {
     width: 100%;
     height: 100%;
     margin: 0px;
-    padding: 0px;
-    overflow: hidden
+    padding: 0px
 }
 
 #container {
@@ -16,7 +15,7 @@ html, body {
 	border:1px solid black
 }
 
-#filePath {
+input.fileSelect {
 	display:'none
 }
 
