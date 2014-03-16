@@ -38,9 +38,25 @@ $(document).ready(function() {
 	myApp.dhxLayout.setEffect('collapse', true);
 	myApp.dhxLayout.setEffect('resize', true);
 	
-	//定义弹窗对象
-	myApp.dhxWins = new dhtmlXWindows();
+	//定义消息显示对象
+	myApp.dhxWins=new dhtmlXWindows();
 	myApp.dhxWins.setImagePath("./lib/imgs/icons/");
+	myApp.popMessage=function (title,text,icon,icon_dis){
+		$("<div>",{
+			id:"popMessage",
+			text:text,
+			"class":"popMessage"
+		}).appendTo("body");
+		var m=myApp.dhxWins.createWindow("popMessage",0,0,300,200);
+		m.setText(title);
+		m.setModal(true);
+		m.attachObject("popMessage",true);
+		m.centerOnScreen();
+		m.setIcon(icon || "about.gif",icon_dis || icon || "about_dis.gif");
+		m.button("minmax1").hide();
+		m.button("minmax2").hide();
+		m.button("park").hide();
+	}
 
 	//定义Grid对象
 	myApp.dhxGrid = myApp.dhxLayout.cells("a").attachGrid();
@@ -205,7 +221,7 @@ $(document).ready(function() {
 			}
 		}catch(e){
 			userData.gridData.clearData("gridData");
-			alert("读取数据时发生错误！\n  数据行编号："+(i+1));
+			myApp.popMessage("数据错误","读取数据时发生错误！\n  数据行编号："+(i+1));
 			userData.gridData.points=new Array();
 		}
 		return userData.gridData;
@@ -301,8 +317,11 @@ $(document).ready(function() {
 
 	//载入CSV格式的数据文件
 	myApp.loadCSV=function (v){
+		myApp.dhxGrid.csv.cell=",";
+		myApp.dhxGrid.csv.row="\n";
 		myApp.dhxGrid.clearAll();
 		myApp.dhxGrid.load(v,"csv");
+		myApp.dhxGrid.csv.cell="\t";
 		for (var i=0;i<myApp.dhxGrid.getRowsNum();i++){
 			if (myApp.dhxGrid.cells2(i,0).getValue()!=""){
 				if (myApp.dhxGrid.cells2(i,1).getValue()=="") {myApp.dhxGrid.cells2(i,2).setValue("0")};
@@ -324,10 +343,7 @@ $(document).ready(function() {
 			type: "file"
 		}).appendTo("body");
 		$file.change(function(){
-			myApp.dhxGrid.csv.cell=",";
-			myApp.dhxGrid.csv.row="\n";
 			myApp.loadCSV($(this).val());
-			myApp.dhxGrid.csv.cell="\t";
 		});
 		$file.click();
 	}
@@ -368,7 +384,7 @@ $(document).ready(function() {
 				myApp.dhxGrid.pasteBlockFromClipboard();
 				break;
 			case "about":
-				var aboutWin=myApp.dhxWins.createWindow("popupWindow",0,0,300,200);
+				var aboutWin=myApp.dhxWins.createWindow("about",0,0,300,200);
 				aboutWin.setModal(true);
 				aboutWin.attachURL("./about.html");
 				aboutWin.setIcon("about.gif","about_dis.gif");
@@ -377,9 +393,8 @@ $(document).ready(function() {
 				aboutWin.centerOnScreen();
 				break;
 			case "loadSample":
-				myApp.loadCSV("./xml/sample.csv")
+				myApp.loadCSV("xml/sample.csv");
 				break;
-	
 		}
 	});
 	
@@ -444,13 +459,13 @@ $(document).ready(function() {
 								userData.scaleX=roundTo(scale.x,6);
 								myApp.dhxToolbar2.setValue("scaleX",userData.scaleX);
 							}else{
-								alert('计算X轴的涨缩系数时出现错误！')
+								myApp.popMessage("涨缩计算错误","计算X轴的涨缩系数时出现错误！");
 							}
 							if (scale.y !== null) {
 								userData.scaleY=roundTo(scale.y,6);
 								myApp.dhxToolbar2.setValue("scaleY",userData.scaleY);
 							}else{
-								alert('计算Y轴的涨缩系数时出现错误！')
+								myApp.popMessage("涨缩计算错误","计算Y轴的涨缩系数时出现错误！");
 							}
 							break;
 						}
@@ -485,7 +500,7 @@ $(document).ready(function() {
 			if (bool===true) {
 				return true;
 			} else {
-				alert('输入的数据格式不正确！');
+				myApp.popMessage("数据错误","输入的数据格式不正确！");
 				return false;
 			}
 		}
@@ -531,5 +546,9 @@ $(document).ready(function() {
 	myApp.dhxToolbar1.disableItem("redrawChart");
 	myApp.dhxToolbar2.disableItem("alignmentSelect");
 	myApp.dhxToolbar2.disableItem("scaleSelect");
-
+	
+	//剪贴板禁用错误提示
+	dhtmlxError.catchError("Clipboard",function(){
+		myApp.popMessage("错误","当前浏览器的剪贴板操作被禁用，无法使用自动剪贴功能！")
+	})
 });

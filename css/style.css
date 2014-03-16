@@ -19,8 +19,10 @@ input.fileSelect {
 	display:'none
 }
 
-#popupWindow {
-	font-size:10pt;
+#popMessage {
+	font-size:11pt;
 	text-indent:2em;
-	margin:15px
+	margin:20px;
+	width:300px;
+	line-height:150%
 }

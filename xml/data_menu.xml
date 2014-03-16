@@ -30,7 +30,7 @@
 	</item>
 	<item id="sep_top_2" type="separator"/>
 	<item id="help" text="帮助">
-		<item id="needhelp" text="导入演示数据" img="help.gif" imgdis="help_dis.gif"/>
+		<item id="loadSample" text="导入演示数据" img="help.gif" imgdis="help_dis.gif"/>
 		<item id="about" text="关于..." img="about.gif" imgdis="about_dis.gif"/>
 		<item id="bugReporting" text="Bug反馈" img="bug_reporting.gif" imgdis="bug_reporting_dis.gif">
 			<href target="blank"><![CDATA[http://helscn.comuf.com/contactme]]></href>
