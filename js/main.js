@@ -47,10 +47,10 @@ $(document).ready(function() {
 			text:text,
 			"class":"popMessage"
 		}).appendTo("body");
-		var m=myApp.dhxWins.createWindow("popMessage",0,0,300,200);
+		var m=myApp.dhxWins.createWindow("popMessage",0,0,350,220);
 		m.setText(title);
 		m.setModal(true);
-		m.attachObject("popMessage",true);
+		m.attachObject("popMessage");
 		m.centerOnScreen();
 		m.setIcon(icon || "about.gif",icon_dis || icon || "about_dis.gif");
 		m.button("minmax1").hide();
@@ -221,7 +221,7 @@ $(document).ready(function() {
 			}
 		}catch(e){
 			userData.gridData.clearData("gridData");
-			myApp.popMessage("数据错误","读取数据时发生错误！\n  数据行编号："+(i+1));
+			myApp.popMessage("数据错误","读取数据第"+(i+1)+"行数据时出现错误！请检查数据输入是否有误！");
 			userData.gridData.points=new Array();
 		}
 		return userData.gridData;
@@ -316,23 +316,39 @@ $(document).ready(function() {
 	}
 
 	//载入CSV格式的数据文件
-	myApp.loadCSV=function (v){
-		myApp.dhxGrid.csv.cell=",";
-		myApp.dhxGrid.csv.row="\n";
-		myApp.dhxGrid.clearAll();
-		myApp.dhxGrid.load(v,"csv");
-		myApp.dhxGrid.csv.cell="\t";
-		for (var i=0;i<myApp.dhxGrid.getRowsNum();i++){
-			if (myApp.dhxGrid.cells2(i,0).getValue()!=""){
-				if (myApp.dhxGrid.cells2(i,1).getValue()=="") {myApp.dhxGrid.cells2(i,2).setValue("0")};
-				if (myApp.dhxGrid.cells2(i,2).getValue()=="") {myApp.dhxGrid.cells2(i,3).setValue("0")};
-				if (myApp.dhxGrid.cells2(i,3).getValue()=="") {myApp.dhxGrid.cells2(i,4).setValue("0")};
-				if (myApp.dhxGrid.cells2(i,4).getValue()=="") {myApp.dhxGrid.cells2(i,5).setValue("0")};
+	myApp.loadCSV=function (path,delims){
+		delims=delims || ",";
+		$.get(path, function(data){
+			var l,v=data.split("\n");
+			for (var i=v.length-1;i>=0;i--){
+				if (v[i]!=="") {
+					l=v[i].split(delims);
+					if (l.length===5) {l.push(1);}
+					if (l.length!==6) {
+						myApp.statusBar.setText("数据格式错误: "+path);
+						myApp.popMessage("数据错误","载入的数据格式不正确！请检查数据文件是否有误。");
+						return false;
+					}
+					v[i]=l.join(delims);
+				}
 			}
-		}
-		myApp.dhxGrid.checkAll(true);
-		myApp.refreshGroupName();
-		myApp.redrawChart();
+			myApp.dhxGrid.csv.cell=delims;
+			myApp.dhxGrid.csv.row="\n";
+			myApp.dhxGrid.clearAll();
+			myApp.dhxGrid.loadCSVString(v.join("\n"));
+			myApp.dhxGrid.csv.cell="\t";
+			for (var i=0;i<myApp.dhxGrid.getRowsNum();i++){
+				if (myApp.dhxGrid.cells2(i,0).getValue()!=""){
+					if (myApp.dhxGrid.cells2(i,1).getValue()=="") {myApp.dhxGrid.cells2(i,2).setValue("0")};
+					if (myApp.dhxGrid.cells2(i,2).getValue()=="") {myApp.dhxGrid.cells2(i,3).setValue("0")};
+					if (myApp.dhxGrid.cells2(i,3).getValue()=="") {myApp.dhxGrid.cells2(i,4).setValue("0")};
+					if (myApp.dhxGrid.cells2(i,4).getValue()=="") {myApp.dhxGrid.cells2(i,5).setValue("0")};
+				}
+			}
+			myApp.refreshGroupName();
+			myApp.redrawChart();
+			myApp.statusBar.setText("载入数据成功: "+path);
+		},"text");
 	}
 
 	//打开并载入CSV格式的数据文件
