@@ -31,13 +31,13 @@ var myApp = {
 
 $(document).ready(function() {
 	//定义Layout对象
+
 	myApp.dhxLayout = new dhtmlXLayoutObject(document.body, "2U");
 	myApp.dhxLayout.cells("a").setWidth(390);
 	myApp.dhxLayout.cells("a").setText("数据输入");
 	myApp.dhxLayout.cells("b").setText("形变量示意图");
 	myApp.dhxLayout.setEffect('collapse', true);
 	myApp.dhxLayout.setEffect('resize', true);
-	
 	//定义消息显示对象
 	myApp.dhxWins=new dhtmlXWindows();
 	myApp.dhxWins.setImagePath("./lib/imgs/icons/");
@@ -297,16 +297,16 @@ $(document).ready(function() {
 		myApp.refreshListOption(myApp.dhxToolbar2,"alignmentSelect",nameArr);
 		myApp.refreshListOption(myApp.dhxToolbar2,"scaleSelect",nameArr);
 		if (nameArr.length===0) {
-			myApp.dhxMenu.setItemDisabled("redrawChart");
-			myApp.dhxToolbar1.disableItem("redrawChart");
+			//myApp.dhxMenu.setItemDisabled("redrawChart");
+			//myApp.dhxToolbar1.disableItem("redrawChart");
 			myApp.dhxToolbar2.setItemText("alignmentSelect","对位点选择...");
-			myApp.dhxToolbar2.disableItem("alignmentSelect");
-			myApp.dhxToolbar2.disableItem("scaleSelect");
+			//myApp.dhxToolbar2.disableItem("alignmentSelect");
+			//myApp.dhxToolbar2.disableItem("scaleSelect");
 		}else{
-			myApp.dhxMenu.setItemEnabled("redrawChart");
-			myApp.dhxToolbar1.enableItem("redrawChart");
-			myApp.dhxToolbar2.enableItem("alignmentSelect");
-			myApp.dhxToolbar2.enableItem("scaleSelect");
+			//myApp.dhxMenu.setItemEnabled("redrawChart");
+			//myApp.dhxToolbar1.enableItem("redrawChart");
+			//myApp.dhxToolbar2.enableItem("alignmentSelect");
+			//myApp.dhxToolbar2.enableItem("scaleSelect");
 			var alignmentSelect=myApp.dhxToolbar2.getListOptionSelected("alignmentSelect");
 			if (!alignmentSelect && nameArr.length>0) {
 				myApp.dhxToolbar2.setListOptionSelected("alignmentSelect","alignmentSelect_1");
@@ -413,7 +413,7 @@ $(document).ready(function() {
 				break;
 		}
 	});
-	
+
 	//Toolbar事件绑定
 	myApp.clearGrid();
 	myApp.dhxToolbar1.attachEvent("onClick",function (id){
@@ -554,17 +554,19 @@ $(document).ready(function() {
 		}
 		return true;
 	});
-	
+
 	//windows事件绑定
 	$(window).resize(myApp.refreshChartSize);
 	myApp.refreshChartSize();
-	myApp.dhxMenu.setItemDisabled("redrawChart");
-	myApp.dhxToolbar1.disableItem("redrawChart");
-	myApp.dhxToolbar2.disableItem("alignmentSelect");
-	myApp.dhxToolbar2.disableItem("scaleSelect");
+	//myApp.dhxMenu.setItemDisabled("redrawChart");
+	//myApp.dhxToolbar1.disableItem("redrawChart");
+	//myApp.dhxToolbar2.disableItem("alignmentSelect");
+	//myApp.dhxToolbar2.disableItem("scaleSelect");
 	
 	//剪贴板禁用错误提示
 	dhtmlxError.catchError("Clipboard",function(){
 		myApp.popMessage("错误","当前浏览器的剪贴板操作被禁用，无法使用自动剪贴功能！")
 	})
+	/*	
+*/
 });

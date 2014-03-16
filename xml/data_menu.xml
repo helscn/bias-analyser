@@ -7,7 +7,7 @@
 		<item id="open" text="导入CSV数据" img="open.gif" imgdis="open_dis.gif">
 			<hotkey>Ctrl+Shift+O</hotkey>
 		</item>
-		<item id="data_sep_1" type="separator"/>
+		<item id="data_sep_1" type="separator" />
 		<item id="redrawChart" text="绘制图表" img="chart.gif" imgdis="chart_dis.gif">
 			<hotkey>Ctrl+Shift+M</hotkey>
 		</item>
@@ -17,7 +17,7 @@
 		<item id="add" text="增加新行" img="add.gif" imgdis="add_dis.gif" >
 			<hotkey>Ctrl+;</hotkey>
 		</item>
-		<item id="sep_edit_1" type="separator"/>
+		<item id="sep_edit_1" type="separator" />
 		<item id="copy" text="复制选区" img="copy.gif" imgdis="copy_dis.gif">
 			<hotkey>Ctrl+C</hotkey>
 		</item>
@@ -30,8 +30,8 @@
 	</item>
 	<item id="sep_top_2" type="separator"/>
 	<item id="help" text="帮助">
-		<item id="loadSample" text="导入演示数据" img="help.gif" imgdis="help_dis.gif"/>
-		<item id="about" text="关于..." img="about.gif" imgdis="about_dis.gif"/>
+		<item id="loadSample" text="导入演示数据" img="help.gif" imgdis="help_dis.gif" />
+		<item id="about" text="关于..." img="about.gif" imgdis="about_dis.gif" />
 		<item id="bugReporting" text="Bug反馈" img="bug_reporting.gif" imgdis="bug_reporting_dis.gif">
 			<href target="blank"><![CDATA[http://helscn.comuf.com/contactme]]></href>
 		</item>
