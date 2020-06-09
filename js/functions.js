@@ -341,7 +341,7 @@ Points.prototype.calcStdev=function (transform){
 
 //计算平均涨缩系数
 Points.prototype.calcScaleFactor=function (threshold){
-	threshold=threshold || 0;
+	threshold=threshold || 0.2;
 	threshold=Math.abs(threshold);
 	var stat=this.calcStatistics();
 	var thresholdX=(stat.maxSpecX-stat.minSpecX)*threshold;
